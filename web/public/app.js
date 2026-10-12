@@ -859,7 +859,25 @@ document.addEventListener('keydown', (event) => {
     closeDrawer(drawer);
   }
 });
+// On opening, take a random deck from the card file, avoiding the one shown
+// on the previous visit; fall back to the book example if the file is missing.
+function randomDeck(decks) {
+  let previous = null;
+  try { previous = localStorage.getItem('strela-last-deck'); } catch { /* storage unavailable */ }
+  const choices = decks.length > 1 ? decks.filter(deck => deck.id !== previous) : decks;
+  const deck = choices[Math.floor(Math.random() * choices.length)];
+  try { localStorage.setItem('strela-last-deck', deck.id); } catch { /* storage unavailable */ }
+  return deck;
+}
 work(async () => {
+  let deck = null;
+  try { deck = randomDeck((await loadCatalog()).decks); } catch { deck = null; }
+  if (deck) {
+    $('listing').value = deck.listing;
+    await createSession(deck.listing, deck);
+    notice('Из картотеки взята колода «' + deck.title + '». Адрес первой команды: ' + $('resetAddress').value + '.');
+    return;
+  }
   const { listing } = await request('/api/example');
   $('listing').value = listing;
   await createSession(listing);
