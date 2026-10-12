@@ -1,0 +1,28 @@
+sin x for |x| < π/2 by k terms of the Taylor series, with a repetition counter
+Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie
+        (1959), docs/ecm_i_prog.pdf, section 34 example 2, printed pp. 175-176, table 38.
+Status: symbolic core (input, conversion, output and stop omitted).
+Method: u(i+1) = u(i) * (-x^2 / ((2i+2)(2i+3))), partial sums in c.
+
+Data
+  b+1)  x      b+2)  2      b+3)  1      b+4)  1      b+5)  k
+b+3, b+4 and b+5 form the repetition counter; b+4 starts at 1 because the
+first term u1 = x needs no computation. The result is left in c.
+
+Program
+  П2   a+1)   b+1    0000   c      13
+       a+2)   b+1    0000   c+1    13
+       a+3)   0000   0000   c+2    13
+       a+4)   b+3    0000   c+3    13
+  A3   a+5)   b+1    b+1    c+4    05
+       a+6)   0000   c+4    c+4    03     c+4 = -x^2
+  A4   a+7)   c+2    b+2    c+2    01
+       a+10)  c+3    b+2    c+3    01
+       a+11)  c+2    c+3    c+5    05
+       a+12)  c+5    0000   c+5    62
+       a+13)  c+4    c+5    c+5    05
+       a+14)  c+1    c+5    c+1    05     next term
+       a+15)  c      c+1    c      01     next partial sum
+  P5   a+16)  b+3    b+4    b+4    01
+       a+17)  b+4    b+5    0000   16
+       a+20)  a+21   a+7    0000   20     omega = 0 passes to A6 at a+21

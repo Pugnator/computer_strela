@@ -1,0 +1,41 @@
+# phi(x) = f(x^2 + x - 1), where f(y) = y^3 - 1 for |y| <= 1,
+# 2y - 1 for 1 < |y| <= 2, and y^5/8 - 1 for |y| > 2.
+# Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie (Electronic Digital Machines and Programming), 1959, docs/ecm_i_prog.pdf, section 32 example 2, printed pp. 163-165, table 36 (concrete listing).
+# Memory as the book assigns it: a=0017, h=0031, g=0036, k=0043, b=0046, c=0052, d=0054.
+# 0053-0054 are working cells; the answer is in 0055, converted to decimal and punched.
+# 0004 is the book's input operator P0: read 33 (octal) words into 0020.
+# Book error: table 36 prints 0024 as 0053 0050 0000 0 04, which tests |y| - 1
+# and swaps the first two branches. The operator P3 derived on p. 164,
+# a+5) b+2 c+1 0000 04, tests |1| - |y|; this listing uses that word.
+START 0020
+0004 0000 0032 0020 0 41
+0020 0047 0003 0047 0 72
+0021 0047 0047 0053 0 05
+0022 0047 0053 0053 0 01
+0023 0053 0050 0053 0 03
+0024 0050 0053 0000 0 04
+0025 0026 0032 0000 0 20
+0026 0053 0053 0054 0 05
+0027 0053 0054 0054 0 05
+0030 0054 0050 0055 0 03
+0031 0044 0044 0000 0 20
+0032 0051 0053 0000 0 04
+0033 0034 0037 0000 0 20
+0034 0051 0053 0053 0 05
+0035 0053 0050 0055 0 03
+0036 0044 0044 0000 0 20
+0037 0053 0053 0054 0 05
+0040 0054 0054 0054 0 05
+0041 0053 0054 0054 0 05
+0042 0052 0054 0054 0 05
+0043 0054 0050 0055 0 03
+0044 0055 0000 0055 0 70
+0045 0055 0000 0000 0 44
+0046 0000 0000 0000 0 40
+# 0047: x. The book gives no value; enter it before running.
+# 0050: the constant 1 = 1. BCD word computed for this listing.
+0050 0200 0000 0000 0 01
+# 0051: the constant 2 = 2. BCD word computed for this listing.
+0051 0400 0000 0000 0 01
+# 0052: the constant 1/8 = 0.125. BCD word computed for this listing.
+0052 0222 4000 0000 0 00

@@ -1,0 +1,37 @@
+# Two linear equations Ax + By = C, Dx + Ey = F.
+# Source: A. I. Kitov, N. A. Krinitsky, Elektronnye vychislitelnye mashiny (Electronic Computing Machines), 1958, docs/kitov_evm.pdf, table 4, printed p. 46; input card p. 47.
+# The same program, with the same input card, is in the 1959 book, printed pp. 151-154.
+# Cells 0040-0045 hold A..F as decimal words; 0046-0050 are working cells;
+# x and y are left in 0051 and 0052, converted to decimal and punched.
+# 0004 is the book's input card: read 26 (octal) words from cards into 0020.
+# The book's run used A=1, B=2, C=5, D=7, E=5, F=17.
+START 0020
+0004 0000 0025 0020 0 41
+0020 0040 0005 0040 0 72
+0021 0040 0044 0046 0 05
+0022 0041 0043 0047 0 05
+0023 0046 0047 0046 0 03
+0024 0046 0000 0046 0 62
+0025 0042 0044 0047 0 05
+0026 0041 0045 0050 0 05
+0027 0047 0050 0047 0 03
+0030 0046 0047 0051 0 05
+0031 0040 0045 0047 0 05
+0032 0042 0043 0050 0 05
+0033 0047 0050 0047 0 03
+0034 0046 0047 0052 0 05
+0035 0051 0001 0051 0 70
+0036 0051 0001 0000 0 44
+0037 0000 0000 0000 0 40
+# 0040: A = 1. BCD word computed for this listing.
+0040 0200 0000 0000 0 01
+# 0041: B = 2. BCD word computed for this listing.
+0041 0400 0000 0000 0 01
+# 0042: C = 5. BCD word computed for this listing.
+0042 1200 0000 0000 0 01
+# 0043: D = 7. BCD word computed for this listing.
+0043 1600 0000 0000 0 01
+# 0044: E = 5. BCD word computed for this listing.
+0044 1200 0000 0000 0 01
+# 0045: F = 17. BCD word computed for this listing.
+0045 0270 0000 0000 0 02

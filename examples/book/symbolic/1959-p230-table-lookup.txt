@@ -1,0 +1,98 @@
+Subroutines that find the table cell for interpolation, y = f(x)
+Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie
+        (1959), docs/ecm_i_prog.pdf, section 45 item 8, printed pp. 230-234.
+Status: symbolic subroutines (operator P1 of the scheme P1 Φ2 Q3). Each
+returns the number of the cell b+i that holds yi, as units of the first (I)
+or second (II) address. A * marks a readdressed field; 7575 is the CDD
+constant used to take the integer part with opcode 12.
+Common check of x1 <= x < xn (Pk) and stop (Яk+1) in subroutines 2-6:
+  a+1)  d+1  c+1  0000  0 03
+  a+2)  a+3  a+5  0000  0 20
+  a+3)  d+1  c+n  0000  0 03
+  a+4)  a+5  a+6  0000  0 20
+  a+5)  d+1  0000 0000  0 40
+
+1. Constant step (p. 231). (b+j) = yj; (d+1) = x1, (d+2) = 1/h,
+   (d+3) = b+1 (I), (d+4) = 0000 0000 0000 0 13 (in command code), (d+5) = xn;
+   (c+1) = x; c+2, c+3 working. Result b+i (I) in c+2.
+  Pk     a+1)   c+1    d+1    c+2    0 03
+         a+2)   a+3    a+5    0000   0 20
+         a+3)   c+1    d+5    0000   0 03
+         a+4)   a+5    a+6    0000   0 20
+  Яk+1   a+5)   c+1    0000   0000   0 40
+  Ak+2   a+6)   d+2    c+2    c+2    0 05
+         a+7)   c+2    7575   c+2    0 12
+         a+10)  c+2    d+4    c+3    0 07
+         a+11)  c+2    c+3    c+2    0 14
+         a+12)  d+3    c+2    c+2    0 02
+
+2. Enumeration (p. 231). (c+j) = xj, (b+j) = yj; (e+1) = 1(II),
+   (e+2) = d+1 c+1 0000 0 03, (e+3) = 7777 (II), (e+4) = Δ - 1 (II), Δ = b - c;
+   (d+1) = x; d+2, d+3 working. Result b+i (II) in d+3.
+  Ok+2(i)  a+6)   e+2    0000   a+10   0 13
+  Fk+3(i)  a+7)   a+10   e+1    a+10   0 02
+  P^i k+4  a+10)  d+1    c+1*   0000   0 03
+           a+11)  a+7    a+12   0000   0 20
+  Ak+5     a+12)  a+10   e+3    d+2    0 11
+           a+13)  d+2    e+4    d+3    0 02
+
+3. Almost-constant step, irregularity k (pp. 231-232). (e+1) = x0, (e+2) = 1/h,
+   (e+3) = 0000 0000 0000 0 27, (e+4) = c - k (II), (e+5) = d+1 7777 0000 0 03,
+   (e+6) = 1(II), (e+7) = 7777(II), (e+10) = Δ - 1 (II); (d+1) = x.
+   The book says the result is in the second address of d+2 and, after the
+   listing, "in cell d+3 obtained b+i (II)"; the last command writes d+3.
+  Ak+2     a+6)   d+1    e+1    d+2    0 03
+           a+7)   d+2    e+2    d+2    0 05
+           a+10)  d+2    7575   d+2    0 12
+           a+11)  d+2    e+3    d+3    0 07
+           a+12)  d+2    d+3    d+2    0 14
+           a+13)  d+2    e+4    d+2    0 02
+  Φk+3     a+14)  e+5    d+2    a+16   0 02
+  Fk+4(i)  a+15)  a+16   e+6    a+16   0 02
+  P^i k+5  a+16)  0000   0000*  0000   0 00   formed by Φk+3
+           a+17)  a+15   a+20   0000   0 20
+  Ak+6     a+20)  a+16   e+7    d+2    0 11
+           a+21)  d+2    e+10   d+3    0 02
+
+4. Two-level enumeration (pp. 232-233). (e+1) = v(II), (e+2) = 1(II),
+   (e+3) = d+1 c+1 0000 0 03, (e+4) = Δ - 1 (II), (e+5) = 7777 (II),
+   (e+6) = v - 1 (II). Result b+i (II) in d+2.
+  Ok+2(j)  a+6)   e+3    0000   a+10   0 13
+  Fk+3(j)  a+7)   a+10   e+1    a+10   0 02
+  P^j k+4  a+10)  d+1    c+1+v  0000   0 03
+           a+11)  a+7    a+12   0000   0 20
+  Φk+5     a+12)  a+10   e+6    a+14   0 15
+  Fk+6(i)  a+13)  a+14   e+2    a+14   0 02
+  P^i k+7  a+14)  0000   0000*  0000   0 00   formed by Φk+5
+           a+15)  a+13   a+16   0000   0 20
+  Ak+8     a+16)  a+14   e+5    d+2    0 11
+           a+17)  d+2    e+4    d+2    0 02
+
+5. Halving (bisection) (p. 233). (e+1) = 1/2, (e+2) = 1, (e+3) = c+1, (e+4) = c+n,
+   (e+5) = 0000 0000 0000 0 27, (e+6) = d+1 0000 0000 0 03, (e+7) = Δ (II);
+   (d+1) = x; d+2 ... d+5 working. Result b+i (II) in d+2.
+  Пk+2     a+6)   e+3    0001   d+3    0 45
+  Φk+3     a+7)   d+3    d+4    d+2    0 01
+           a+10)  d+2    e+1    d+2    0 05
+           a+11)  d+2    7575   d+2    0 12
+           a+12)  d+2    e+5    d+5    0 07
+           a+13)  d+2    d+5    d+5    0 14
+           a+14)  e+6    d+5    a+15   0 13
+  Pk+4     a+15)  0000   0000*  0000   0 00   formed by Φk+3
+           a+16)  a+17   a+21   0000   0 20
+  Пk+5     a+17)  d+2    0000   d+3    0 13
+           a+20)  a+22   a+22   0000   0 20
+  Пk+6     a+21)  d+2    0000   d+4    0 13
+  Pk+7     a+22)  d+4    d+3    d+2    0 03
+           a+23)  d+2    e+2    0000   0 16
+           a+24)  a+25   a+7    0000   0 20
+  Ak+10    a+25)  d+3    e+5    d+5    0 07
+           a+26)  d+3    d+5    d+3    0 14
+           a+27)  d+3    e+7    d+2    0 02
+
+6. Sliding start (p. 234). Data as in subroutine 2. Result b+i (II) in d+3.
+  Fk+2(i)  a+6)   a+7    e+1    a+7    0 02
+  P^i k+3  a+7)   d+1    c+1*   0000   0 03
+           a+10)  a+6    a+11   0000   0 20
+  Ak+4     a+11)  a+7    e+3    d+2    0 11
+           a+12)  d+2    e+4    d+3    0 02

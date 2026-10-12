@@ -1,0 +1,27 @@
+# Definite integral of t^n from 1 to x (x > 0): (x^(n+1) - 1)/(n+1), or ln x when n = -1.
+# Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie (Electronic Digital Machines and Programming), 1959, docs/ecm_i_prog.pdf, section 31 example 1, printed pp. 155-156 (concrete listing p. 156).
+# Memory as the book assigns it: a=0017, g=0032, h=0033, b=0036, c=0041, d=0043.
+# 0021-0022 branch on n = -1; 0023-0032 first branch; 0033 second branch; 0034-0036 common end.
+# 0042-0043 are working cells; the answer is in 0044, converted to decimal and punched.
+# 0004 is the book's input card: read 22 (octal) words into 0020.
+START 0020
+0004 0000 0021 0020 0 41
+0020 0037 0002 0037 0 72
+0021 0040 0041 0000 0 16
+0022 0033 0023 0000 0 20
+0023 0040 0041 0042 0 03
+0024 0037 0000 0043 0 66
+0025 0042 0043 0043 0 05
+0026 0043 0000 0043 0 64
+0027 0043 0041 0043 0 01
+0030 0042 0000 0042 0 62
+0031 0042 0043 0044 0 05
+0032 0034 0034 0000 0 20
+0033 0037 0000 0044 0 66
+0034 0044 0000 0044 0 70
+0035 0044 0000 0000 0 44
+0036 0000 0000 0000 0 40
+# 0037: x. The book gives no value; enter it before running.
+# 0040: n. The book gives no value; enter it before running.
+# 0041: the constant -1 = -1. BCD word computed for this listing.
+0041 4200 0000 0000 0 01

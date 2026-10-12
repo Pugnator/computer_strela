@@ -1,0 +1,39 @@
+Library subroutine: one Runge-Kutta step for y'i = fi(x, y1, ..., yn), i = 1 ... n
+Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie
+        (1959), docs/ecm_i_prog.pdf, section 38, printed pp. 197-199, table 44.
+Status: symbolic library subroutine. A2 (the right-hand sides) is problem
+specific and occupies e+3 ... e+g.
+Notation: ⟨N⟩ is the cell that holds N. The equation x' = 1 is added so that
+x is advanced by the same scheme as the yi.
+
+Method
+  y(i,k+1) = y(i,k) + Σ K(i,j) αj,  j = 1 ... 4
+  αj = (1/3) 2^(-lj),  Δxj = h 2^(-mj), obtained by order subtraction (opcode 07)
+  l1=0 m1=1, l2=1 m2=1, l3=0 m3=0, l4=1 m4=0
+  μ = 1 000000000000000000001100000100000010 000 000 = 4000 0006 0201 0 00
+
+Cells (table 44), with ai = a0 + i, bi = b0 + i, ci = c0 + i, di = d0 + i,
+b0 = an + 1, c0 = bn + 1
+  a0 ... an   x, y1 ... yn   current values; x(k+1), y(i,k+1) after the step
+  b0 ... bn   x, y1 ... yn   saved for the step
+  c0 ... cn   x, y1 ... yn   arguments passed to A2
+  d0 ... dn   x', y'1 ... y'n  right-hand sides computed by A2
+  r           working copy of μ
+
+Subroutine
+  П1   e+1)      a0     2n+1   b0     0  45
+       e+2)      ⟨μ⟩    0000   r      0  13
+  A2   e+3) ... e+g)  right-hand sides of the system
+  A3   e+g+1)    ⟨1/3⟩  r      ⟨αj⟩   0  07
+       e+g+2)    r      4107   r      0  14
+       e+g+3)    ⟨h⟩    r      ⟨Δxj⟩  0  07
+  A4   e+g+4)    0000   n      0000   0  35
+       e+g+5)    d0     ⟨Δxj⟩  d0     0  05
+       e+g+6)    0000   n      0000   0  37
+       e+g+7)    b0     d0     c0     0  01   (third address printed as "c")
+  A5   e+g+10)   0000   n      0000   0  35
+       e+g+11)   d0     ⟨αj⟩   d0     0  05
+       e+g+12)   0000   n      0000   0  37
+       e+g+13)   a0     d0     a0     0  01
+  P6   e+g+14)   r      4107   r      0  14
+       e+g+15)   e+3    e+g+16 0000   0  20

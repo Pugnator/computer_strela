@@ -1,0 +1,77 @@
+Program-input routines with checksums (cells 0004-0017, the input card)
+Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie
+        (1959), docs/ecm_i_prog.pdf, section 40 item 1, printed pp. 205-207.
+Status: concrete addresses except n, the number of words of the program
+being loaded at 0020; each "n-1" is that count minus one, in octal.
+[0020] marks the address advanced by the group prefix 34 (sum with opcode 17,
+end-around addition, which never overflows on command words).
+
+1. Two identical decks, compared by their checksums (p. 205)
+  0004)  0000    n-1    0020  0  41   read the first deck
+  0005)  0000    n-1    0000  0  34   first checksum
+  0006)  [0020]  0015   0015  0  17
+  0007)  0000    n-1    0020  0  41   read the second deck into the same cells
+  0010)  0000    n-1    0000  0  34   second checksum
+  0011)  [0020]  0016   0016  0  17
+  0012)  0015    0016   0000  0  16   compare the sums
+  0013)  0020    0014   0000  0  20
+  0014)  0015    0016   0000  0  40   stop on bad input
+  0015)  0000    0000   0000  0  00   checksum cells
+  0016)  0000    0000   0000  0  00
+  0017)  0000    0000   0000  0  00   unused
+
+2. One deck; punch the checksum and stop (p. 206)
+  0004)  0000    n-1    0020  0  41
+  0005)  0000    n-1    0000  0  34
+  0006)  [0020]  0011   0011  0  17
+  0007)  0011    0000   0000  0  44   punch the checksum
+  0010)  0000    0000   0000  0  40
+  0011)  0000    0000   0000  0  00   checksum cell
+  0012) ... 0017)  zeros (unused)
+
+3. One deck; compare with the old checksum punched into the last row (p. 206)
+  0004)  0000    n-1    0020  0  41
+  0005)  0000    n-1    0000  0  34
+  0006)  [0020]  0012   0012  0  17
+  0007)  0012    0017   0000  0  16
+  0010)  0020    0011   0000  0  20
+  0011)  0012    0017   0000  0  40   stop on bad input
+  0012)  0000    0000   0000  0  00   new checksum
+  0013) ... 0016)  zeros (unused)
+  0017)  old checksum
+
+4. First input, which forms and punches the input card of form 5 (pp. 206-207)
+  0004)  0000    n-1    0020  0  41
+  0005)  0000    n-1    0000  0  34
+  0006)  0020    0013   0013  0  17   sum the program
+  0007)  0015    0015   0000  0  20   jump to the forming commands
+  0010)  0013    0012   0000  0  16   auxiliary words for the new card
+  0011)  0020    0011   0000  0  20
+  0012)  0012    0013   0000  0  40   (printed without its ")")
+  0013)  0000    0000   0000  0  00
+  0014)  0000    0000   0000  0  00
+  0015)  0010    0004   0007  0  45   copy 0010-0017 over 0004-0013
+  0016)  0004    0013   0000  0  44   punch the new input card
+  0017)  0000    0000   0000  0  40
+
+5. The input card formed by routine 4 (p. 207)
+  0004)  0000    n-1    0020  0  41
+  0005)  0000    n-1    0000  0  34
+  0006)  0020    0013   0013  0  17
+  0007)  0013    0012   0000  0  16
+  0010)  0020    0011   0000  0  20
+  0011)  0012    0013   0000  0  40
+  0012)  old checksum
+  0013)  0000    0000   0000  0  00   new checksum
+  0014)  0000    0000   0000  0  00
+  0015)  0010    0004   0007  0  45   leftovers of routine 4
+  0016)  0004    0013   0000  0  44
+  0017)  0000    0000   0000  0  40
+
+Notes
+- In routines 1-3 the book writes [0020] for the group-incremented address;
+  in routines 4-5 it prints 0020 without brackets. The stored word is the same.
+- Routine 5, cell 0007, compares 0013 with 0012 and 0011 stops with them,
+  matching the new layout (new sum in 0013, old sum in 0012).
+- The single-command input card of the linear-equations and three-branch
+  listings in examples/book is the simplest case: 0004) 0000 n-1 0020 0 41.

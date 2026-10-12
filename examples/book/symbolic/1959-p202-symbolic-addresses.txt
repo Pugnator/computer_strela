@@ -1,0 +1,39 @@
+Example of programming in "symbolic addresses" and correcting an omission
+Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie
+        (1959), docs/ecm_i_prog.pdf, section 39 item 1, printed p. 202.
+Status: symbolic. The numbers 1001..., 2001..., 3001..., 4001... are the book's
+"symbolic addresses", replaced by real cells by a converting program. They
+are not a Strela memory layout (4001 is not a RAM address).
+
+Commands 1001 ..., data x = (2001), a = (2002), b = (2003), 1 = (2004),
+working cells 3001 ..., results 4001 ...
+
+The intended formula was y = a x^6 + sin(b x + sqrt(x^2 - 1) + sqrt(x^2 + (ln x)^2 + 1)).
+By mistake the programmer wrote y = a x^2 + sin(b x + sqrt(x^2 - 1)):
+  1001)  2001  2001  3001  0  05
+  1002)  2002  3001  3002  0  05
+  1003)  2003  2001  3003  0  05
+  1004)  3001  2004  3004  0  03
+  1005)  3004  0000  3004  0  63
+  1006)  3003  3004  3003  0  01
+  1007)  3003  0000  3003  0  67
+  1010)  3002  3003  4001  0  01
+
+Correction: new commands 1011-1016 are inserted after 1006 without
+renumbering; the conversion table lists the order 1001-1006, 1011-1016, 1007-1010.
+  1001)  2001  2001  3001  0  05
+  1002)  2002  3001  3002  0  05
+  1003)  2003  2001  3003  0  05
+  1004)  3001  2004  3004  0  03
+  1005)  3004  0000  3004  0  63
+  1006)  3003  3004  3003  0  01
+  1011)  2001  0000  3004  0  66
+  1012)  3004  3004  3004  0  05
+  1013)  3001  3004  3004  0  01
+  1014)  3004  2004  3004  0  01
+  1015)  3004  0000  3004  0  63
+  1016)  3003  3004  3003  0  01
+  1007)  3003  0000  3003  0  67
+  1010)  3002  3003  4001  0  01
+The corrected program still computes a x^2, not a x^6; the book's example
+is only about inserting the missing commands.

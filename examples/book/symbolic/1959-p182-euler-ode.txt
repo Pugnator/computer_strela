@@ -1,0 +1,41 @@
+y' = 10/(x^2 + y^2) + x, y(1) = 1, 1 <= x <= 10, h = 0.01, Euler's method with recalculation
+Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie
+        (1959), docs/ecm_i_prog.pdf, section 35 example 2, printed pp. 182-184, table 42.
+Status: symbolic core (input and conversion omitted). Two subroutines with
+standard cells are called with opcode 27: Ā1 computes y' = f(x, y) from
+c+1, c+2 into c+3; Ā2 computes c+4 = c+2 + h(c+3).
+A * marks the readdressed result address.
+
+Data
+  b-6)  c+4  0000  b+n+1  13   (final form of a+27, ends the cycle)
+  b-5)  1(III)    b-4)  1/2    b-3)  10    b-2)  h    b-1)  x0    b)  y0
+  Results y1 ... yn in b+1 ... b+n, n = 1604 (octal) = 900 steps.
+Working and standard cells c+1 ... c+6.
+
+Program
+  П0      a+1)   b-1    0000   c+1    13
+          a+2)   b      0000   c+2    13
+  Ā1      a+3)   c+1    c+1    c+3    05
+          a+4)   c+2    c+2    c+4    05
+          a+5)   c+3    c+4    c+3    01
+          a+6)   c+3    0000   c+3    62
+          a+7)   c+3    b-3    c+3    05
+          a+10)  c+1    c+3    c+3    01
+          a+11)  0000   0000   0000   0 00   return cell
+  Ā2      a+12)  b-2    c+3    c+4    05
+          a+13)  c+2    c+4    c+4    01
+          a+14)  0000   0000   0000   0 00   return cell
+  П3      a+15)  c+2    0000   c+5    13
+          a+16)  c+3    0000   c+6    13
+          a+17)  c+4    0000   c+2    13
+          a+20)  c+1    b-2    c+1    01     x(i+1) = x(i) + h
+  E4      a+21)  a+3    a+3    a+11   27     call Ā1
+  A5      a+22)  c+3    c+6    c+4    01
+          a+23)  c+4    b-4    c+3    05     θ = (y' + ȳ')/2
+  П6      a+24)  c+5    0000   c+2    13
+  E7      a+25)  a+12   a+12   a+14   27     call Ā2
+  З*8^i   a+26)  c+4    0000   c+2    13
+          a+27)  c+4    0000   b+1*   13
+  F9(i)   a+30)  a+27   b-5    a+27   02
+  P10     a+31)  a+27   b-6    0000   16
+          a+32)  a+33   a+3    0000   20     omega = 0 passes to A11 at a+33

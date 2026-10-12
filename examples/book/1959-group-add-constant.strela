@@ -1,0 +1,10 @@
+# Example 10: add (0100) to each of cells 0050-0077, results in place.
+# Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie (Electronic Digital Machines and Programming), 1959, docs/ecm_i_prog.pdf, section 28 item 11 (group operations), printed p. 139.
+# The book prints only the two commands. This listing places them at 0010
+# and adds a stop at 0012, as the other section 28 fixtures do.
+START 0010
+0010 0000 0027 0000 0 35
+0011 0050 0100 0050 0 01
+0012 0000 0000 0000 0 40
+# 0050-0077: the 24 numbers. The book gives no value; enter it before running.
+# 0100: the number to add. The book gives no value; enter it before running.

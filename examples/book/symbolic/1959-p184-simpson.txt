@@ -1,0 +1,35 @@
+Simpson's rule for the integral of ln(x + sqrt(1 + x^2)) from α to β, 2n intervals of width h
+Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie
+        (1959), docs/ecm_i_prog.pdf, section 35 example 3, printed pp. 184-185.
+Status: symbolic core (input and conversion omitted).
+Method: S0 = 0, S(i+1) = S(i) + ΔS(i), ΔS(i) = h/3 (y2i + 4 y2i+1 + y2i+2).
+The three ordinates circulate through c+1, c+2, c+3 (operator Ц2).
+P3 makes A1 and Ц2 run three times at the start and twice afterwards.
+
+Data
+  b+1)  α = x0    b+2)  h    b+3)  1    b+4)  h/3    b+5)  4
+  d+1)  0 (the integral accumulates here)
+  d+2)  1(I)      d+3)  0      d+4)  n(I)    (counter)
+
+Program
+  A1   a+1)   b+1    b+1    c+1    05
+       a+2)   b+3    c+1    c+1    01
+       a+3)   c+1    0000   c+1    63
+       a+4)   b+1    c+1    c+1    01
+       a+5)   c+1    0000   c+4    66
+       a+6)   b+1    b+2    b+1    01
+  Ц2   a+7)   c+2    0002   c+1    45
+  P3   a+10)  b+1    b+1    b+10   20     as printed; probably a+1 a+1 a+10
+       a+11)  b+1    b+1    b+10   27     as printed; probably a+1 a+1 a+10
+  A4   a+12)  c+2    b+5    c+5    05
+       a+13)  c+1    c+5    c+5    01
+       a+14)  c+3    c+5    c+5    01
+       a+15)  b+4    c+5    c+5    05
+       a+16)  c+5    d+1    d+1    01
+  P5   a+17)  d+3    d+2    d+3    02
+       a+20)  d+3    d+4    0000   16
+       a+21)  b+22   a+1    0000   20     as printed; A6 follows at a+22
+
+Suspected typos: in P3 and P5 the letter b stands where the operator pattern
+of section 34 (cycle working three times, p. 175) needs a. P3 must transfer
+control to A1 at a+1 and plant or erase a return command in a+10.

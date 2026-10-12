@@ -1,0 +1,49 @@
+Table of y = x{ln[sqrt(x sin(x+1)) + x] + x} + e^x + sqrt(x) = f(x) for x1 ... xn
+Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie
+        (1959), docs/ecm_i_prog.pdf, section 35 example 1, printed pp. 180-181,
+        tables 40 and 41.
+Status: symbolic cores. A * marks addresses that depend on parameter i.
+Operators P4, A5, П6 and Я7 are not programmed in the book.
+
+Data (both variants)
+  b)  1      b+1)  x1   b+2)  x2   ...   b+n)  xn   (results replace the data)
+  d+1)  1(I)        d+2)  1(III)
+
+Variant 1, without standard cells
+  A2^i   a+1)   b+1*   b      c+1    01
+         a+2)   c+1    0000   c+1    67
+         a+3)   b+1*   c+1    c+1    05
+         a+4)   c+1    0000   c+1    63
+         a+5)   b+1*   c+1    c+1    01
+         a+6)   c+1    0000   c+1    66
+         a+7)   b+1*   c+1    c+1    01
+         a+10)  b+1*   c+1    c+1    05
+         a+11)  b+1*   0000   c+2    64
+         a+12)  c+1    c+2    c+1    01
+         a+13)  b+1*   0000   c+2    63
+         a+14)  c+1    c+2    b+1*   01
+  F3(i)  a+15)  a+1    d+1    a+1    02
+         a+16)  a+3    d+1    a+3    02
+         a+17)  a+5    d+1    a+5    02
+         a+20)  a+7    d+1    a+7    02
+         a+21)  a+10   d+1    a+10   02
+         a+22)  a+11   d+1    a+11   02
+         a+23)  a+13   d+1    a+13   02
+         a+24)  a+14   d+2    a+14   02
+
+Variant 2, with the standard input cell c+3
+  З2^i   a+1)   b+1*   0000   c+3    13
+  A3^i   a+2)   c+3    b      c+1    01
+         a+3)   c+1    0000   c+1    67
+         a+4)   c+3    c+1    c+1    05
+         a+5)   c+1    0000   c+1    63
+         a+6)   c+3    c+1    c+1    01
+         a+7)   c+1    0000   c+1    66
+         a+10)  c+3    c+1    c+1    01
+         a+11)  c+3    c+1    c+1    05
+         a+12)  c+3    0000   c+2    64
+         a+13)  c+1    c+2    c+1    01
+         a+14)  c+3    0000   c+2    63
+         a+15)  c+1    c+2    b+1*   01
+  F4(i)  a+16)  a+1    d+1    a+1    02
+         a+17)  a+15   d+2    a+15   02

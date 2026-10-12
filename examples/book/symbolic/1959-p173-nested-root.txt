@@ -1,0 +1,17 @@
+y = x^2 + sqrt(1 + sqrt(1 + x)), cycle working twice
+Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie
+        (1959), docs/ecm_i_prog.pdf, section 34 example 1, printed pp. 173-174, table 37.
+Status: symbolic core (input, conversion, output and stop omitted).
+
+Data
+  b+1)  x      b+2)  1
+Working cells c+1, c+2; the result is left in c+1.
+
+Program
+  П2   a+1)   b+1    0000   c+1    13
+  A3   a+2)   b+2    c+1    c+1    01
+       a+3)   c+1    0000   c+1    63
+  X4   a+4)   0000   0000   0000   0 00   empty cell: receives the return command
+       a+5)   a+2    a+2    a+4    27     first time: repeat A3 and plant the return
+  A5   a+6)   b+1    b+1    c+2    05
+       a+7)   c+1    c+2    c+1    01

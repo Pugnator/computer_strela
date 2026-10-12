@@ -1,0 +1,40 @@
+Cycle control with a logical scale (M. R. Shura-Bura's technique)
+Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie
+        (1959), docs/ecm_i_prog.pdf, section 34 examples 4 and 5, printed pp. 178-179.
+Status: symbolic cores. A * marks addresses that depend on parameter i.
+
+Example 4. Table of y = {[(x^4 + 1)^4 + 1]^4 + 1}^4 + 1 for x1 ... x12 (octal count).
+z = x^4 + 1 is computed in place four times; the scale returns control to A2
+three times and then passes it to the readdressing operator F4(i).
+
+Data
+  b)  1      b+1)  x1   ...   b+12)  x12   (results replace the data)
+  l+1)  1(I, II, III)     l+2)  1(I, III)     l+3)  0000 0000 0000 0 01
+  c+1)  scale    = 011 101 110 111 011 101 110 111 011 101 110 111 0 111 000
+                 = 3567 3567 3567 0 70  (in command code)
+  c+2)  pointer  = 100 000 ... 0 000 000 = 4000 0000 0000 0 00
+
+Program
+  A2^i   a+1)   b+1*   b+1*   b+1*   05
+         a+2)   b+1*   b+1*   b+1*   05
+         a+3)   b+1*   b      b+1*   01
+  P3     a+4)   c+1    l+3    c+1    14     shift the scale left one place
+         a+5)   c+1    c+2    0000   11     test the sign digit
+         a+6)   a+1    a+7    0000   20
+  F4(i)  a+7)   a+1    l+1    a+1    02
+         a+10)  a+2    l+1    a+2    02
+         a+11)  a+3    l+2    a+3    02
+  P5     a+12)  c+1    0000   0000   16     omega = 0 passes to A6 at a+14
+         a+13)  a+14   a+1    0000   20
+
+Example 5. Operator P4 for the scheme П0 A1 A2^i F3(i) P4 A5 П6 Я7, passing
+control six times to A2^i, once to F3(i), twice to A2^i and once to A5.
+Two-digit codes: 00 to A2^i (cell a+1), 01 to F3(i) (cell b+1), 10 to A5 (cell e+1).
+  c+1)  11 00 00 00 00 00 00 01 00 00 10 000000000000000000000  (scale)
+  c+2)  11 0000...0  (pointer)        c+3)  working cell
+  c+4)  01 0000...0                   c+5)  000 ... 000 0 000 010  (shift by 2)
+  P4     d+1)   c+1    c+5    c+1    14
+         d+2)   c+1    c+2    c+3    11
+         d+3)   d+4    a+1    0000   20
+         d+4)   c+3    c+4    0000   16
+         d+5)   b+1    e+1    0000   20

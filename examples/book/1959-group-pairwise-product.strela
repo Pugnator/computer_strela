@@ -1,0 +1,10 @@
+# Example 11: pairwise products of 0100-0177 and 0200-0277 into 0300-0377.
+# Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie (Electronic Digital Machines and Programming), 1959, docs/ecm_i_prog.pdf, section 28 item 11 (group operations), printed p. 139.
+# The book prints only the two commands. This listing places them at 0010
+# and adds a stop at 0012, as the other section 28 fixtures do.
+START 0010
+0010 0000 0077 0000 0 37
+0011 0100 0200 0300 0 05
+0012 0000 0000 0000 0 40
+# 0100-0177: first group. The book gives no value; enter it before running.
+# 0200-0277: second group. The book gives no value; enter it before running.

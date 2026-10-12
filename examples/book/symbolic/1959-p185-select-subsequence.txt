@@ -1,0 +1,32 @@
+Select the numbers xi >= k from an increasing sequence x1 ... xn into c+1, c+2, ...
+Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie
+        (1959), docs/ecm_i_prog.pdf, section 35 item 4 (forming operators), printed pp. 185-186.
+Status: symbolic fragment following an operator Q1 that produced the sequence.
+Φ6 forms the transfer command П7 (opcode 45) after the program has found
+the first xi >= k. A * marks the readdressed field.
+
+Data
+  b)  k      b+1)  x1   b+2)  x2   ...   b+n)  xn
+  e+1)  1(I)      e+2)  (n-1)(I)      e+3)  7777(I)
+  e+4)  (b+n)(I)  e+5)  0000 0000 c+1 45
+
+Program
+  P2^i   a+1)   a+1*   b      0000   03     as printed; the first address is b+1*
+         a+2)   a+7    a+3    0000   20
+  F3(i)  a+3)   a+1    e+1    a+1    02
+  P4     a+4)   e+2    e+1    e+2    03
+         a+5)   a+1    a+6    0000   20
+  Я5     a+6)   0000   0000   0000   40     no xi >= k
+  Φ6     a+7)   a+1    e+3    c+1    11
+         a+10)  e+4    c+1    c+2    15
+         a+11)  c+2    4114   c+2    14
+         a+12)  c+1    c+2    c+1    13
+         a+13)  c+1    e+5    a+14   13
+  П7     a+14)  0000   0000   0000   00     formed as  b+i'  n-i'  c+1  45
+
+Variant of Φ6 with special addition (02) instead of forming (13):
+         a+7)   a+1    e+3    c+1    11
+         a+10)  e+4    c+1    c+2    15
+         a+11)  c+2    4114   c+2    14
+         a+12)  c+1    c+2    c+1    02
+         a+13)  e+5    c+1    a+14   02

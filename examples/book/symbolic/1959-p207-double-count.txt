@@ -1,0 +1,32 @@
+Double and double-triple counting to detect machine faults
+Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie
+        (1959), docs/ecm_i_prog.pdf, section 40 item 3, printed pp. 207-209.
+Status: symbolic fragments wrapped around a checked section a+1 ... a+k that
+leaves its result (or a checksum of its results) in b+1.
+
+Double count: the checked section runs twice; unequal results stop the machine.
+  a+1) ... a+k)    checked section, result in b+1
+  a+k+1)  0000   0000   0000   0  00   return cell
+  a+k+2)  b+1    0000   b+2    0  13   keep the first result
+  a+k+3)  a+1    a+1    a+k+1  0  27   run the section again, plant the return
+  a+k+4)  b+1    b+2    0000   0  16
+  a+k+5)  a+k+7  a+k+6  0000   0  20
+  a+k+6)  b+1    b+2    0000   0  40   stop and show both results
+  a+k+7) ...       the computation continues
+
+Double-triple count: the section runs twice and, if the results differ,
+a third time; the run continues if the third result agrees with either.
+Cells b+1, b+2, b+3 are the control cells.
+  a+1)    a+2    a+2    a+k+1  0  27
+  a+2)    b+2    0000   b+3    0  13
+  a+3)    b+1    0000   b+2    0  13
+  a+4) ... a+k)    checked section, result in b+1
+  a+k+1)  0000   0000   0000   0  00   return cell
+  a+k+2)  b+1    b+2    0000   0  16
+  a+k+3)  a+k+11 a+2    a+k+1  0  27
+  a+k+4)  b+1    b+2    0000   0  16
+  a+k+5)  a+k+11 a+k+6  0000   0  20
+  a+k+6)  b+1    b+3    0000   0  16
+  a+k+7)  a+k+11 a+k+10 0000   0  20
+  a+k+10) 0000   0000   0000   0  40   no two results agree
+  a+k+11) ...      the computation continues

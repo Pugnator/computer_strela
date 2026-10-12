@@ -1,0 +1,31 @@
+# Root of x^3/65 + x - 5.001 = 0 by iteration x(i+1) = 5.001 - x(i)^3/65,
+# starting from x0 = 4, until |x(i+1) - x(i)| < 0.0001.
+# Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie (Electronic Digital Machines and Programming), 1959, docs/ecm_i_prog.pdf, section 33 example 1, printed pp. 166-167.
+# The book gives symbolic addresses with a=0017, b=a+14=0033, c=b+4=0037
+# and leaves the substitution to the reader. This listing is that substitution.
+# Book typo: the stop is printed as b+14; it is a+14 = 0033.
+# The book writes 5.0001 in (VI.19) but 5.001 in (VI.20), (VI.21) and the data.
+# This listing uses the data value 5.001. 1/65 is rounded to nine digits here.
+# 0040-0041 are working cells; the root is left in 0034, converted and punched.
+# The book gives no input card for this example.
+START 0020
+0020 0034 0003 0034 0 72
+0021 0034 0000 0040 0 13
+0022 0040 0040 0041 0 05
+0023 0040 0041 0041 0 05
+0024 0036 0041 0041 0 05
+0025 0035 0041 0034 0 03
+0026 0034 0040 0040 0 03
+0027 0040 0037 0000 0 04
+0030 0021 0031 0000 0 20
+0031 0034 0000 0034 0 70
+0032 0034 0000 0000 0 44
+0033 0000 0000 0000 0 40
+# 0034: x0 = 4. BCD word computed for this listing.
+0034 1000 0000 0000 0 01
+# 0035: the constant 5.001 = 5.001. BCD word computed for this listing.
+0035 1200 0200 0000 0 01
+# 0036: the constant 1/65 = 0.0153846154. BCD word computed for this listing.
+0036 0251 6043 0252 0 41
+# 0037: epsilon = 0.0001. BCD word computed for this listing.
+0037 0200 0000 0000 0 43

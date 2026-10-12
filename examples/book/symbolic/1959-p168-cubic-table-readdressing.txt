@@ -1,0 +1,33 @@
+Table of y = x^5 + 2x + 3, cycle with readdressing
+Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie
+        (1959), docs/ecm_i_prog.pdf, section 33 example 3, printed pp. 168-169.
+Status: symbolic, depends on n.
+A * marks an address changed by the readdressing operator F3(i).
+
+Data
+  b-1)  2      b)  3      b+1)  x1   ...   b+n)  xn      b+n+1)  ξ  (any number not equal to any xi)
+  e+1)  1(I)   e+2)  1(I, II)   e+3)  1(III)   (the book takes them from the constant store)
+
+Program
+  A1     a+1)   b-1    n+2    b-1    72     (printed "b—\")
+  A2^i   a+2)   b+1*   b+1*   c+1    05
+         a+3)   c+1    c+1    c+1    05
+         a+4)   b+1*   c+1    c+1    05
+         a+5)   b+1*   b-1    c+2    05
+         a+6)   c+1    c+2    c+1    01
+         a+7)   c+1    b      b+1*   01
+  F3(i)  a+10)  a+2    e+2    a+2    02
+         a+11)  a+4    e+1    a+4    02
+         a+12)  a+5    e+1    a+5    02
+         a+13)  a+7    e+3    a+7    02
+         a+14)  a+15   e+1    a+15   02     readdresses the comparison in P4
+  P4^i   a+15)  b+1*   b+n+1  0000   16
+         a+16)  a+17   a+2    0000   20
+  A5     a+17)  b+1    n-1    b+1    70
+  P6     a+20)  b+1    n-1    0000   44
+  Я7     a+21)  0000   0000   0000   40
+
+Allocation printed by the book: a = 0017, b = a + 21 = 0040, c = b + n + 1 = 0041 + n.
+Book error: b = a + 21 is copied from example 2. Here the data start at b - 1,
+so b - 1 = 0037 and b = 0040 would overwrite commands a+20 and a+21.
+A consistent choice is b = a + 23 = 0042.

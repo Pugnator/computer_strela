@@ -1,0 +1,41 @@
+Table of y = a0 sin^8 x + a1 sin^7 x + ... + a7 sin x + a8, Horner form in z = sin x
+Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie
+        (1959), docs/ecm_i_prog.pdf, section 33 example 4, printed pp. 170-171.
+Status: symbolic core. From this example on the book omits input, conversion,
+        output and stop operators (footnote, p. 171).
+Notation: one * marks addresses that depend on parameter i, two ** on parameter j.
+
+Data
+  b)  α0     b+1)  α1     b+2)  α2    ...    b+10)  α8   (printed "b+10) α2")
+  d+1)  x1   d+2)  x2   ...   d+n)  xn       d+n+1)  ξ  (not equal to any xi)
+  d = b + 10
+  e+1)  1(I)
+  e+2)  0, cleared before the cycle         e+3)  1000(I)
+  e+4)  b+1 c+2 c+2 01  (initial form of a+4)
+  e+5)  1(III)
+
+Program, with restoration by the operator O7(i)
+  A2^j   a+1)   d+1**  0000   c+1    67     z = sin x
+  П3     a+2)   b      0000   c+2    13
+  A4^i   a+3)   c+2    c+1    c+2    05
+         a+4)   b+1*   c+2    c+2    01
+  F5(i)  a+5)   a+4    e+1    a+4    02     (printed "e+\")
+  P6     a+6)   e+2    e+3    e+2    02     8 additions of 1000(I) wrap to zero
+         a+7)   e+2    0000   0000   16
+         a+10)  h+1    a+3    0000   20
+  O7(i)  h+1)   e+4    0000   a+4    13
+  П8^j   g+1)   c+2    0000   d+1**  13     y replaces x
+  F9(j)  g+2)   a+1    e+1    a+1    02
+         g+3)   g+1    e+5    g+1    02
+         g+4)   g+5    e+1    g+5    02
+  P10    g+5)   d+1**  d+n+1  0000   16     omega = 0 sends control to A11 at g+7
+         g+6)   g+7    a+1    0000   20
+
+Variant with restoration by readdressing: O7(i) and F9(j) are replaced by
+F'9(j), and e+4 holds 10(I) instead of the initial form of a+4.
+  F'9(j) g+2)   a+1    e+1    a+1    02
+         g+3)   g+1    e+5    g+1    02
+         g+4)   g+5    e+1    g+5    02
+         g'+4)  a+4    e+4    a+4    15
+The book keeps the name h+1 for the cell of O7(i) in the first program and
+calls the last cell of F'9(j) g'+4.

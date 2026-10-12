@@ -1,0 +1,21 @@
+Polynomial Pn(x) = B0 x^n + B1 x^(n-1) + ... + Bn by Horner's scheme
+Source: A. I. Kitov, N. A. Krinitsky, Elektronnye tsifrovye mashiny i programmirovanie
+        (1959), docs/ecm_i_prog.pdf, section 34 example 3, printed p. 177, table 39.
+Status: symbolic core, depends on n. A * marks the readdressed field.
+The cycle ends when command a+3 equals its final form held in d+2.
+
+Data
+  b-1)  x      b)  B0      b+1)  B1   ...   b+n)  Bn
+  d+1)  1(II)
+  d+2)  c+1  b+n+1  c+1  01   (final form of a+3 after the last readdressing)
+  d+3)  c+1  b+1    c+1  01   (initial form of a+3, for restoration)
+The result is left in c+1.
+
+Program
+  П2      a+1)   b      0000   c+1    13
+  A3^i    a+2)   c+1    b-1    c+1    05
+          a+3)   c+1    b+1*   c+1    01
+  F4(i)   a+4)   a+3    d+1    a+3    02
+  P5      a+5)   a+3    d+2    0000   16
+          a+6)   a+7    a+2    0000   20
+  O6(i)   a+7)   d+3    0000   a+3    13
