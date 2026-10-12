@@ -25,6 +25,7 @@ cp "$repo/web/public/index.html" "$repo/web/public/style.css" \
    "$repo/web/public/catalog.json" "$dist/"
 mkdir -p "$dist/programs"
 cp "$repo"/web/programs/*.strela "$dist/programs/"
+python3 "$repo/web/stamp-dist.py"
 cp "$repo/web/kitov-linear.strela" "$repo/web/vostok-orbit.strela" "$dist/"
 printf '%s\n' "Файлы для размещения на сайте: $dist"
 

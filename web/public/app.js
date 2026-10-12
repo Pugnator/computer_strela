@@ -1,5 +1,9 @@
 import { makeUppResultDeck, makeUppProgramDeck, renderUppCard } from './upp.mjs';
 const $ = (id) => document.getElementById(id);
+// web/stamp-dist.py loads this script as app.js?v=<hash>; every file loaded
+// at run time carries the same stamp, so a cached old file is never mixed in.
+const ASSET_VERSION = new URL(import.meta.url).searchParams.get('v');
+const asset = (file) => ASSET_VERSION ? file + '?v=' + ASSET_VERSION : file;
 let sessionId = null;
 let selectedRam = '0000';
 let selectedZone = '';
@@ -53,15 +57,17 @@ function notice(message, error = false) {
 let backendPromise;
 function getBackend() {
   if (!backendPromise) backendPromise = (async () => {
-    const probe = await fetch('./strela_wasm.mjs', { method: 'HEAD' });
+    const probe = await fetch(asset('./strela_wasm.mjs'), { method: 'HEAD' });
     if (!probe.ok) {
       return null;
     }
     const [{ default: createModule }, { createWasmBackend }] = await Promise.all([
-      import('./strela_wasm.mjs'), import('./wasm-api.mjs')
+      import(asset('./strela_wasm.mjs')), import(asset('./wasm-api.mjs'))
     ]);
-    return createWasmBackend(createModule, async () => {
-      const response = await fetch('./kitov-linear.strela');
+    const versionedModule = (options) =>
+      createModule({ ...options, locateFile: (file) => asset('./' + file) });
+    return createWasmBackend(versionedModule, async () => {
+      const response = await fetch(asset('./kitov-linear.strela'));
       if (!response.ok) throw new Error('Программа из книги недоступна');
       return response.text();
     });
@@ -593,11 +599,11 @@ function cardsLabel(count) {
 
 async function loadCatalog() {
   if (catalog) return catalog;
-  const response = await fetch('./catalog.json');
+  const response = await fetch(asset('./catalog.json'));
   if (!response.ok) throw new Error('Картотека перфокарт недоступна.');
   const data = await response.json();
   await Promise.all(data.decks.map(async (deck, index) => {
-    const listing = await fetch('./' + deck.file);
+    const listing = await fetch(asset('./' + deck.file));
     if (!listing.ok) throw new Error('Колода «' + deck.title + '» недоступна.');
     deck.listing = await listing.text();
     deck.cards = makeUppProgramDeck(deck.listing).length;

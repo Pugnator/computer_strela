@@ -43,5 +43,7 @@ Copy-Item -LiteralPath (Join-Path $repo 'web/kitov-linear.strela') -Destination 
 Copy-Item -LiteralPath (Join-Path $repo 'web/vostok-orbit.strela') -Destination (Join-Path $dist 'vostok-orbit.strela') -Force
 New-Item -ItemType Directory -Force (Join-Path $dist 'programs') | Out-Null
 Copy-Item -Path (Join-Path $repo 'web/programs/*.strela') -Destination (Join-Path $dist 'programs') -Force
+python (Join-Path $repo 'web/stamp-dist.py')
+if($LASTEXITCODE -ne 0){ throw "stamp-dist failed with exit code $LASTEXITCODE" }
 Write-Output "Static Strela playground built in $dist"
 
