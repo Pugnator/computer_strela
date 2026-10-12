@@ -184,3 +184,14 @@ localhost server as a development fallback.
 The build writes a static web/dist/ directory. Gate: initial and stepped
 WebAssembly snapshots match the native CLI byte for byte; a real browser loads
 the static page and its Step/Reset controls update PC and simulated time.
+
+## Book programs and card file extension
+
+Extract every program from docs/kitov_evm.pdf and docs/ecm_i_prog.pdf into
+examples/book. Programs with a printed or fully specified allocation become
+listings; their words are cross-checked against the book's symbolic form and
+run on independently computed inputs. Programs whose allocation the book
+leaves open are transcribed in the book's notation. web/generate-catalog.py
+builds Russian copies with labelled example inputs and web/public/catalog.json;
+the browser console shows them as decks in a card file with deal, sort and
+pull-out animations, reduced to short fades when the system asks for less motion.

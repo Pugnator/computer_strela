@@ -36,10 +36,12 @@ $argsList=@(
 )
 & $emcc @argsList
 if($LASTEXITCODE -ne 0){ throw "emcc failed with exit code $LASTEXITCODE" }
-foreach($asset in @('index.html','style.css','app.js','wasm-api.mjs','upp.mjs')){
+foreach($asset in @('index.html','style.css','app.js','wasm-api.mjs','upp.mjs','catalog.json')){
     Copy-Item -LiteralPath (Join-Path $repo ('web/public/'+$asset)) -Destination (Join-Path $dist $asset) -Force
 }
 Copy-Item -LiteralPath (Join-Path $repo 'web/kitov-linear.strela') -Destination (Join-Path $dist 'kitov-linear.strela') -Force
 Copy-Item -LiteralPath (Join-Path $repo 'web/vostok-orbit.strela') -Destination (Join-Path $dist 'vostok-orbit.strela') -Force
+New-Item -ItemType Directory -Force (Join-Path $dist 'programs') | Out-Null
+Copy-Item -Path (Join-Path $repo 'web/programs/*.strela') -Destination (Join-Path $dist 'programs') -Force
 Write-Output "Static Strela playground built in $dist"
 

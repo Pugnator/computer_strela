@@ -196,7 +196,10 @@ const assets = new Map([
   ['/strela-control-panel-polymus.jpg', ['strela-control-panel-polymus.jpg', 'image/jpeg']],
   ['/strela-lamp-panel-polymus.jpg', ['strela-lamp-panel-polymus.jpg', 'image/jpeg']],
   ['/app.js', ['app.js', 'text/javascript; charset=utf-8']],
-  ['/vostok-orbit.strela', ['../vostok-orbit.strela', 'text/plain; charset=utf-8']]
+  ['/vostok-orbit.strela', ['../vostok-orbit.strela', 'text/plain; charset=utf-8']],
+  ['/kitov-linear.strela', ['../kitov-linear.strela', 'text/plain; charset=utf-8']],
+  ['/upp.mjs', ['upp.mjs', 'text/javascript; charset=utf-8']],
+  ['/catalog.json', ['catalog.json', 'application/json; charset=utf-8']]
 ]);
 
 const server = http.createServer(async (req, res) => {
@@ -235,6 +238,12 @@ const server = http.createServer(async (req, res) => {
           'Content-Length': bytes.length, 'Cache-Control': 'no-store' });
         return res.end(bytes);
       }
+    }
+    const program = /^\/programs\/([a-z0-9-]+\.strela)$/.exec(url.pathname);
+    if (req.method === 'GET' && program) {
+      const bytes = await readFile(path.join(here, 'programs', program[1]));
+      res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Content-Length': bytes.length });
+      return res.end(bytes);
     }
     if (req.method === 'GET' && assets.has(url.pathname)) {
       const [name, type] = assets.get(url.pathname);

@@ -89,7 +89,7 @@
         <p class="module-intro">В каждой строке: адрес ячейки, три адреса команды, контрольный знак и код операции. Все адреса и коды записаны восьмеричными цифрами.</p>
         <textarea id="listing" spellcheck="false" aria-label="Восьмеричная запись программы"></textarea>
         <div class="card-loader" aria-label="Колода перфокарт"><button class="card-stack" id="deckVisual" type="button" aria-label="Просмотреть колоду программы" title="Просмотреть колоду программы" disabled><span class="card-face"><span>ПЕРФОКАРТА · «СТРЕЛА»</span><span class="card-holes" aria-hidden="true"></span><strong id="deckCurrent">Колода готова</strong></span></button><div class="card-reader"><strong>СЧИТЫВАЮЩЕЕ УСТРОЙСТВО</strong><span id="deckCount">0 карт в колоде</span><span id="deckRead">0 слов прочитано</span><div class="deck-track"><span id="deckProgress"></span></div><small>Код УПП</small></div></div>
-        <div class="program-actions"><button id="loadListing" class="control-button primary" type="button">Ввести программу в память</button><button id="loadExample" class="control-button" type="button">Программа из книги</button><button id="loadOrbit" class="control-button" type="button">Полёт «Востока-1»</button></div>
+        <div class="program-actions"><button id="loadListing" class="control-button primary" type="button">Ввести программу в память</button><button id="openCatalog" class="control-button catalog-button" type="button" aria-haspopup="dialog"><span class="catalog-button-icon" aria-hidden="true"></span>Картотека перфокарт</button></div>
         <p class="program-help">Кнопка вводит показанные выше команды в память машины через условную колоду перфокарт. Для выполнения нажмите «Пуск».</p><p class="file-limit">Размер файлов: программа — до 1 Мбайта; перфокарты и каждая лента — до 8 Мбайт, вместе — до 16 Мбайт; состояние — до 16 Мбайт.</p><div class="file-actions"><label class="file-button">Открыть программу<input id="listingFile" type="file" accept=".strela,.txt,text/plain"></label><label class="file-button">Восстановить состояние<input id="snapshotFile" type="file" accept=".sts,application/octet-stream"></label><button id="saveSnapshot" class="file-button" type="button">Сохранить состояние</button></div>
         <div class="media-files">
           <span class="caption">ПЕРФОКАРТЫ И МАГНИТНЫЕ ЛЕНТЫ</span>
@@ -117,6 +117,12 @@
     </main>
     <footer><span>ЭЛЕКТРОННАЯ ЦИФРОВАЯ МАШИНА «СТРЕЛА»</span><a href="https://polymus.ru/collection/detail/bloki-elektronnoy-vychislitelnoy-mashiny-strela" target="_blank" rel="noopener noreferrer">Цвета и детали пульта: Политехнический музей ↗</a></footer>
   </div>
+    <dialog id="catalogDialog" class="catalog-dialog" aria-labelledby="catalogTitle">
+      <div class="output-dialog-head"><div><p class="overline">ХРАНИЛИЩЕ КОЛОД</p><h2 id="catalogTitle">Картотека перфокарт</h2></div><button id="closeCatalog" class="control-button" type="button">Закрыть</button></div>
+      <div class="catalog-tools"><span class="caption" id="catalogSortLabel">ПОРЯДОК КОЛОД</span><div class="catalog-sort" role="group" aria-labelledby="catalogSortLabel"><button type="button" class="control-button" data-sort="book" aria-pressed="true">По книгам</button><button type="button" class="control-button" data-sort="title" aria-pressed="false">По названию</button><button type="button" class="control-button" data-sort="size" aria-pressed="false">По числу карт</button></div></div>
+      <div class="catalog-drawer"><div class="catalog-drawer-label" aria-hidden="true">ЯЩИК 1 · ПРОГРАММЫ ДЛЯ «СТРЕЛЫ»</div><ul id="catalogList" class="catalog-list" aria-label="Колоды программ"></ul></div>
+      <p id="catalogStatus" class="catalog-status" role="status" aria-live="polite"></p>
+    </dialog>
     <dialog id="outputDialog" class="output-dialog" aria-labelledby="outputDialogTitle">
       <div class="output-dialog-head"><h2 id="outputDialogTitle">Выданные перфокарты</h2><button id="closeOutputDeck" class="control-button" type="button" autofocus>Закрыть</button></div>
       <div class="output-dialog-nav"><button id="previousOutputCard" class="control-button" type="button">Предыдущая</button><p id="outputCardNumber" aria-live="polite"></p><button id="nextOutputCard" class="control-button" type="button">Следующая</button></div>

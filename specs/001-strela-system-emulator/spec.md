@@ -112,6 +112,8 @@ A user can optionally use a console view informed by museum photographs to brows
 - **FR-016**: The browser console MUST start a new listing before its first instruction and support portable snapshot download and restore.
 - **FR-017**: Browser operator actions MUST produce the same snapshot as equivalent CLI actions.
 - **FR-018**: The optional static playground MUST run the C emulator inside the browser without a native API server.
+- **FR-019**: The project MUST keep every Strela program printed in the local books, as a runnable listing where the book fixes the memory allocation and as a symbolic transcription otherwise, with page references and any correction of the printed text recorded.
+- **FR-020**: The browser console MUST offer the runnable book programs from a card file (картотека перфокарт) whose decks can be reordered and loaded without typing a listing.
 
 ### Key Entities
 

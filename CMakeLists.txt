@@ -111,6 +111,13 @@ add_test(NAME cli_operator_parity COMMAND strela_snapshot_test
     ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/book/kitov-midbatch-v1.sts
     ${CMAKE_CURRENT_BINARY_DIR}/cli-step.sts)
 set_tests_properties(cli_operator_parity PROPERTIES DEPENDS cli_operator)
+# Book program with complete book data: the root of x^3/65 + x - 5.001 = 0
+# (1959 book, pp. 166-167) is 4.00944774, converted to decimal in 0034.
+add_test(NAME book_iteration COMMAND strela_run run
+    ${CMAKE_CURRENT_SOURCE_DIR}/examples/book/1959-iteration-cubic.strela
+    --max-us 100000000 --dump 0034)
+set_tests_properties(book_iteration PROPERTIES
+    PASS_REGULAR_EXPRESSION "0034: 1000 2242 1672 0 01")
 # A snapshot saved after a stop is paused but must still report that stop.
 add_test(NAME cli_stop_snapshot COMMAND strela_run run
     ${CMAKE_CURRENT_SOURCE_DIR}/examples/programs/two-branches.strela
@@ -137,6 +144,10 @@ if(STRELA_BUILD_WEB_BRIDGE)
         add_test(NAME web_console COMMAND ${STRELA_NODE_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/web/test.mjs)
         set_tests_properties(web_console PROPERTIES
+            ENVIRONMENT "STRELA_BUILD_DIR=${CMAKE_CURRENT_BINARY_DIR}")
+        add_test(NAME web_catalog COMMAND ${STRELA_NODE_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/web/test-catalog.mjs)
+        set_tests_properties(web_catalog PROPERTIES
             ENVIRONMENT "STRELA_BUILD_DIR=${CMAKE_CURRENT_BINARY_DIR}")
     endif()
 endif()

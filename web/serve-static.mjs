@@ -13,17 +13,19 @@ const types = {
   '.mjs': 'text/javascript; charset=utf-8',
   '.wasm': 'application/wasm',
   '.jpg': 'image/jpeg',
-  '.strela': 'text/plain; charset=utf-8'
+  '.strela': 'text/plain; charset=utf-8',
+  '.json': 'application/json; charset=utf-8'
 };
 const files = new Set([
   'index.html', 'style.css', 'app.js', 'wasm-api.mjs', 'upp.mjs',
-  'strela_wasm.mjs', 'strela_wasm.wasm', 'kitov-linear.strela', 'vostok-orbit.strela',
+  'strela_wasm.mjs', 'strela_wasm.wasm', 'kitov-linear.strela', 'vostok-orbit.strela', 'catalog.json',
   'strela-control-panel-polymus.jpg', 'strela-lamp-panel-polymus.jpg'
 ]);
 const server = http.createServer(async (request, response) => {
   try {
     const name = new URL(request.url, 'http://localhost').pathname.slice(1) || 'index.html';
-    if (!files.has(name) || !['GET', 'HEAD'].includes(request.method)) {
+    const program = /^programs\/[a-z0-9-]+\.strela$/.test(name);
+    if ((!files.has(name) && !program) || !['GET', 'HEAD'].includes(request.method)) {
       response.writeHead(404);
       response.end();
       return;

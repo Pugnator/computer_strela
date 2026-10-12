@@ -95,7 +95,8 @@ async function work(operation) {
     busy = false;
     for (const button of document.querySelectorAll('button'))
       button.disabled = button.id === 'haltVisual' ||
-        (!sessionId && !['loadListing', 'loadExample', 'loadOrbit', 'clearMedia'].includes(button.id));
+        (!sessionId && !['loadListing', 'openCatalog', 'clearMedia'].includes(button.id) &&
+         !button.closest('dialog'));
     $('deckVisual').disabled = programDeck.length === 0;
     updateOutputControls();
     if ($('outputDialog').open) $('closeOutputDeck').focus();
@@ -205,6 +206,14 @@ function showProgramDescription(kind) {
   const title = $('bookTitle');
   const description = $('bookDescription');
   const source = $('sourceLink');
+  if (kind && typeof kind === 'object') {
+    plate.textContent = 'ПРОГРАММА ИЗ КНИГИ · ' + kind.year;
+    title.textContent = kind.title;
+    description.textContent = kind.description + ' Источник: ' + kind.source + ', ' + kind.pages + '.';
+    source.href = kind.href;
+    source.textContent = 'Книга ' + kind.year + ' года ↗';
+    return;
+  }
   if (kind === 'orbit') {
     plate.textContent = 'РАСЧЁТНАЯ ПРОГРАММА · «ВОСТОК-1»';
     title.textContent = 'Выведение корабля на орбиту';
@@ -416,15 +425,17 @@ async function printOrbit() {
     }
   }, 25);
 }
-async function createSession(listing) {
+async function createSession(listing, catalogDeck = null) {
   if (typeof listing !== 'string' || listing.length > MAX_LISTING_BYTES || textBytes(listing) > MAX_LISTING_BYTES)
     throw new Error('Программа превышает предел 1 Мбайт.');
   const mediaSize = Object.values(mediaFiles).reduce((sum, file) => sum + (file?.size || 0), 0);
   if (mediaSize > 16 * 1024 * 1024)
     throw new Error('Общий размер перфокарт и лент превышает 16 Мбайт.');
-  programKind = listing.includes('Расчёт выведения корабля «Восток»') ? 'orbit' :
+  programKind = catalogDeck ? catalogDeck.kind : listing.includes('Расчёт выведения корабля «Восток»') ? 'orbit' :
     listing.includes('Решение системы двух линейных уравнений.') ? 'book' : 'custom';
-  showProgramDescription(programKind);
+  showProgramDescription(catalogDeck && !['linear-1958', 'vostok'].includes(catalogDeck.id) ? catalogDeck : programKind);
+  currentDeckId = catalogDeck ? catalogDeck.id : programKind === 'book' ? 'linear-1958' :
+    programKind === 'orbit' ? 'vostok' : null;
   clearPrinter();
   $('budget').value = programKind === 'orbit' ? '150000000' : '1000000';
   const deck = makeUppProgramDeck(listing);
@@ -565,18 +576,166 @@ $('inspectZone').addEventListener('click', () => work(async () => {
   notice('Показана зона ленты ' + value);
 }));
 $('loadListing').addEventListener('click', () => work(() => createSession($('listing').value)));
-$('loadExample').addEventListener('click', () => work(async () => {
-  const { listing } = await request('/api/example');
-  $('listing').value = listing;
-  await createSession(listing);
-}));
-$('loadOrbit').addEventListener('click', () => work(async () => {
-  const response = await fetch('./vostok-orbit.strela');
-  if (!response.ok) throw new Error('Программа расчёта полёта недоступна');
-  const listing = await response.text();
-  $('listing').value = listing;
-  await createSession(listing);
-}));
+// Card file (картотека перфокарт): decks of programs in a drawer.
+let catalog = null;
+let catalogSort = 'book';
+let currentDeckId = 'linear-1958';
+let choosingDeck = false;
+const sortLabels = { book: 'по книгам', title: 'по названию', size: 'по числу карт' };
+const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function cardsLabel(count) {
+  const last = count % 10, lastTwo = count % 100;
+  const word = last === 1 && lastTwo !== 11 ? 'карта' :
+    last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14) ? 'карты' : 'карт';
+  return count + ' ' + word;
+}
+
+async function loadCatalog() {
+  if (catalog) return catalog;
+  const response = await fetch('./catalog.json');
+  if (!response.ok) throw new Error('Картотека перфокарт недоступна.');
+  const data = await response.json();
+  await Promise.all(data.decks.map(async (deck, index) => {
+    const listing = await fetch('./' + deck.file);
+    if (!listing.ok) throw new Error('Колода «' + deck.title + '» недоступна.');
+    deck.listing = await listing.text();
+    deck.cards = makeUppProgramDeck(deck.listing).length;
+    deck.order = index;
+  }));
+  catalog = data;
+  return catalog;
+}
+
+function sortedDecks() {
+  const decks = [...catalog.decks];
+  if (catalogSort === 'title') decks.sort((a, b) => a.title.localeCompare(b.title, 'ru'));
+  else if (catalogSort === 'size') decks.sort((a, b) => a.cards - b.cards || a.order - b.order);
+  else decks.sort((a, b) => a.order - b.order);
+  return decks;
+}
+
+function deckElement(deck) {
+  const item = document.createElement('li');
+  item.dataset.id = deck.id;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'catalog-deck' + (deck.id === currentDeckId ? ' current' : '');
+  button.style.setProperty('--depth', Math.min(14, 3 + Math.round(deck.cards / 4)) + 'px');
+  const tab = document.createElement('span');
+  tab.className = 'catalog-tab';
+  tab.textContent = deck.book === 'vostok' ? 'РАСЧЁТ · ВОСТОК-1' : 'КНИГА ' + deck.year + ' · ' + deck.pages;
+  const title = document.createElement('strong');
+  title.textContent = deck.title;
+  const text = document.createElement('span');
+  text.className = 'catalog-text';
+  text.textContent = deck.description;
+  const meta = document.createElement('span');
+  meta.className = 'catalog-meta';
+  const count = document.createElement('span');
+  count.textContent = cardsLabel(deck.cards);
+  const state = document.createElement('span');
+  state.textContent = deck.id === currentDeckId ? 'В считывающем устройстве' : 'Вынуть колоду';
+  meta.append(count, state);
+  button.append(tab, title, text, meta);
+  button.addEventListener('click', () => chooseDeck(deck, button));
+  item.append(button);
+  return item;
+}
+
+function renderCatalog(animate) {
+  const list = $('catalogList');
+  list.classList.remove('riffle', 'choosing');
+  list.replaceChildren(...sortedDecks().map(deckElement));
+  list.querySelectorAll('.catalog-deck').forEach((button, i) => button.style.setProperty('--i', i));
+  if (animate) {
+    void list.offsetWidth;
+    list.classList.add('riffle');
+  }
+}
+
+function resortCatalog(sort) {
+  if (!catalog || sort === catalogSort || choosingDeck) return;
+  catalogSort = sort;
+  for (const button of document.querySelectorAll('.catalog-sort button'))
+    button.setAttribute('aria-pressed', String(button.dataset.sort === sort));
+  const list = $('catalogList');
+  list.classList.remove('riffle');
+  const items = [...list.children];
+  const before = new Map(items.map(item => [item.dataset.id, item.getBoundingClientRect()]));
+  const byId = new Map(items.map(item => [item.dataset.id, item]));
+  const ordered = sortedDecks().map(deck => byId.get(deck.id));
+  list.append(...ordered);
+  ordered.forEach((item, i) => item.querySelector('.catalog-deck').style.setProperty('--i', i));
+  set('catalogStatus', 'Колоды разложены ' + sortLabels[sort] + '.');
+  if (reduceMotion()) {
+    // Gentle version: the decks are dealt again in their new order.
+    ordered.forEach((item, i) => item.animate(
+      [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }],
+      { duration: 260, delay: i * 70, easing: 'ease-out', fill: 'backwards' }));
+    return;
+  }
+  // Each deck is lifted out of its old place and dropped into the new one,
+  // one after another, like cards passing through a sorting machine.
+  ordered.forEach((item, i) => {
+    const from = before.get(item.dataset.id);
+    const to = item.getBoundingClientRect();
+    const dx = from.left - to.left, dy = from.top - to.top;
+    if (!dx && !dy) return;
+    item.animate([
+      { transform: `translate(${dx}px, ${dy}px)` },
+      { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - 40}px) rotate(${i % 2 ? 5 : -5}deg)`, offset: 0.45 },
+      { transform: 'none' }
+    ], { duration: 560, delay: i * 50, easing: 'cubic-bezier(.3,.7,.3,1)', fill: 'backwards' });
+  });
+}
+
+async function chooseDeck(deck, button) {
+  if (busy || choosingDeck) return;
+  choosingDeck = true;
+  const list = $('catalogList');
+  list.classList.remove('riffle');
+  list.classList.add('choosing');
+  button.classList.add('chosen');
+  set('catalogStatus', 'Колода «' + deck.title + '» вынимается из ящика.');
+  try {
+    if (reduceMotion()) {
+      await button.animate([
+        { transform: 'none', opacity: 1 },
+        { transform: 'translateY(-8px)', opacity: 0 }
+      ], { duration: 360, easing: 'ease-in', fill: 'forwards' }).finished;
+    } else {
+      await button.animate([
+        { transform: 'none' },
+        { transform: 'translateY(-38px) rotate(-2deg)', offset: 0.35 },
+        { transform: 'translateY(-38px) rotate(-2deg)', offset: 0.55 },
+        { transform: 'translate(40px, -110vh) rotate(7deg)', opacity: 0.2 }
+      ], { duration: 760, easing: 'cubic-bezier(.45,0,.7,.2)', fill: 'forwards' }).finished;
+    }
+  } finally {
+    choosingDeck = false;
+  }
+  $('catalogDialog').close();
+  $('listing').value = deck.listing;
+  await work(() => createSession(deck.listing, deck));
+}
+
+$('openCatalog').addEventListener('click', async () => {
+  await work(loadCatalog);
+  if (!catalog || $('catalogDialog').open) return;
+  renderCatalog(true);
+  set('catalogStatus', 'В ящике ' + catalog.decks.length + ' колод. Выберите программу.');
+  $('catalogDialog').showModal();
+  const current = $('catalogList').querySelector('.catalog-deck.current') ||
+    $('catalogList').querySelector('.catalog-deck');
+  if (current) current.focus({ preventScroll: true });
+});
+$('closeCatalog').addEventListener('click', () => $('catalogDialog').close());
+$('catalogDialog').addEventListener('close', () => {
+  if (!$('openCatalog').disabled) $('openCatalog').focus();
+});
+for (const button of document.querySelectorAll('.catalog-sort button'))
+  button.addEventListener('click', () => resortCatalog(button.dataset.sort));
 const mediaLabels = { cards: 'Перфокарты', tape1: 'Лента 1', tape2: 'Лента 2' };
 function updateMediaNames() {
   const selected = Object.entries(mediaFiles).filter(([, file]) => file)
@@ -687,7 +846,7 @@ for (const button of document.querySelectorAll('.drawer-close')) {
   button.addEventListener('click', () => closeDrawer(button.closest('.side-drawer')));
 }
 document.addEventListener('keydown', (event) => {
-  if ($('outputDialog').open || event.key !== 'Escape' || event.defaultPrevented) return;
+  if ($('outputDialog').open || $('catalogDialog').open || event.key !== 'Escape' || event.defaultPrevented) return;
   const drawer = document.querySelector('.side-drawer[open]');
   if (drawer) {
     event.preventDefault();
