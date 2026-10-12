@@ -51,6 +51,8 @@ snapshots. Emscripten is needed to build the static files. The earlier
 localhost native-server mode remains available for development.
 ## Scope and evidence
 
+[examples/benchmark](examples/benchmark/README.md) holds a smoke test that checks every instruction class and RAM 0400–3777 in 4.8 s of simulated time. `strela_run bench` times it on the host against real time.
+
 Every Strela program printed in the 1958 and 1959 books is collected in [examples/book](examples/book/README.md): runnable listings verified on test inputs, and symbolic transcriptions where the book leaves the memory allocation open. The browser console's card file (картотека перфокарт) offers the runnable ones.
 
 The [opcode matrix](docs/OPCODES.md) gives the implemented behavior and source confidence for each documented command. The [book inventory](docs/BOOKS.md) explains the local scans. In particular, the 1958 Kitov and Krinitsky book supplies the complete linear-equation program used by the end-to-end test. The [timing notes](docs/TIMING.md) distinguish sourced figures from estimated media and longer-operation costs. Standard mathematical functions use host math and raw-word conversion, so their last bits and exceptional edge cases remain approximations.

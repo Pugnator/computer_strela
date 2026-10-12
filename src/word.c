@@ -76,36 +76,48 @@ static uint64_t word_encode(uint64_t mag, int exponent, int negative)
            (uint64_t)(exponent < 0 ? -exponent : exponent);
 }
 
-static uint64_t shift_sticky(uint64_t value, unsigned count)
+/* Align a 35-bit mantissa to a larger order, as the book describes for
+   addition (1959, printed p. 140): digits that leave the 35-digit grid are
+   lost. Opcode 12 drops them; 01, 03 and 04 round by adding one to the last
+   kept digit when the highest lost digit is one. */
+static uint64_t align(uint64_t mantissa, int shift, bool round)
 {
-    if (!count) return value;
-    if (count >= 64) return value != 0;
-    return (value >> count) | ((value & ((UINT64_C(1) << count) - 1)) != 0);
+    uint64_t kept;
+    if (shift <= 0) return mantissa;
+    kept = shift >= 35 ? 0 : mantissa >> shift;
+    if (round && shift <= 35 && ((mantissa >> (shift - 1)) & 1)) ++kept;
+    return kept;
 }
 
 bool strela_word_add(uint64_t a, uint64_t b, unsigned opcode, uint64_t *out)
 {
     uint64_t ma = (a >> 7) & MANTISSA_MASK;
     uint64_t mb = (b >> 7) & MANTISSA_MASK;
-    uint64_t x, y, magnitude, mantissa;
+    uint64_t x, y, magnitude;
     int ea = word_exponent(a), eb = word_exponent(b), e;
     int sa = !!(a & MANTISSA_SIGN), sb = !!(b & MANTISSA_SIGN), sign;
+    bool round = opcode != 012;
     if (opcode == 003) sb = !sb;
     if (opcode == 004) { sa = 0; sb = 1; }
+    /* Orders are equalized to the larger one even when that operand's
+       mantissa is zero; cell 7575 (-0 with order 35) relies on this. */
     e = ea > eb ? ea : eb;
-    x = shift_sticky(ma << 3, (unsigned)(e - ea));
-    y = shift_sticky(mb << 3, (unsigned)(e - eb));
+    x = align(ma, e - ea, round);
+    y = align(mb, e - eb, round);
     if (sa == sb) { magnitude = x + y; sign = sa; }
     else if (x >= y) { magnitude = x - y; sign = sa; }
     else { magnitude = y - x; sign = sb; }
     if (!magnitude) { *out = 0; return true; }
-    while (magnitude >= (UINT64_C(1) << 38)) { magnitude = shift_sticky(magnitude, 1); ++e; }
-    while (magnitude < (UINT64_C(1) << 37)) { magnitude <<= 1; --e; }
-    mantissa = (magnitude + (opcode == 012 ? 0 : 4)) >> 3;
-    if (mantissa >= (UINT64_C(1) << 35)) { mantissa >>= 1; ++e; }
+    while (magnitude >= (UINT64_C(1) << 35)) {
+        /* Carry out of the mantissa: shift right one place, rounding the
+           lost digit like an alignment shift. */
+        magnitude = align(magnitude, 1, round);
+        ++e;
+    }
+    while (magnitude < (UINT64_C(1) << 34)) { magnitude <<= 1; --e; }
     if (e > 63) return false;
     if (e < -63) { *out = 0; return true; }
-    *out = word_encode(mantissa, e, sign);
+    *out = word_encode(magnitude, e, sign);
     return true;
 }
 

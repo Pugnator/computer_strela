@@ -118,6 +118,17 @@ add_test(NAME book_iteration COMMAND strela_run run
     --max-us 100000000 --dump 0034)
 set_tests_properties(book_iteration PROPERTIES
     PASS_REGULAR_EXPRESSION "0034: 1000 2242 1672 0 01")
+# Smoke test and benchmark (examples/benchmark): every instruction class and
+# RAM 0400-3777; 14 tests, 1792 cells, 4821500 us simulated at 500 us per interval.
+add_test(NAME smoke_test COMMAND strela_run bench
+    ${CMAKE_CURRENT_SOURCE_DIR}/examples/benchmark/smoke-test.strela --repeat 3)
+set_tests_properties(smoke_test PROPERTIES PASS_REGULAR_EXPRESSION
+    "normal stop at 0245 after 137 instructions, 9619 nominal intervals \\(4821500 us simulated\\)\ndisplay=5000000000002/5711000000004\nruns=3 identical=yes")
+# The same program with a wrong memory checksum must stop at the memory check.
+add_test(NAME smoke_test_detects_fault COMMAND strela_run run
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/benchmark/smoke-test-bad-checksum.strela --max-us 100000000)
+set_tests_properties(smoke_test_detects_fault PROPERTIES PASS_REGULAR_EXPRESSION
+    "^comparison mismatch at 0217")
 # A snapshot saved after a stop is paused but must still report that stop.
 add_test(NAME cli_stop_snapshot COMMAND strela_run run
     ${CMAKE_CURRENT_SOURCE_DIR}/examples/programs/two-branches.strela

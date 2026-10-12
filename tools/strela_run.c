@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 static const char *status_name(strela_status status)
 {
@@ -442,6 +443,76 @@ failed:
     strela_machine_destroy(m);
     return 2;
 }
+/* bench: run a listing several times from the same initial state, check
+   that every run ends identically, and compare simulated time with host
+   CPU time. A ratio of at least 1 means the host can emulate the machine in
+   real time (2,000 nominal operations per second by default). */
+static int bench(int argc, char **argv)
+{
+    uint64_t words[STRELA_RAM_WORDS],budget=UINT64_C(500000000),repeat=10,run;
+    unsigned char seen[STRELA_RAM_WORDS];
+    unsigned start=0,n;
+    int has_start,j,same=1;
+    strela_machine_state first,state;
+    strela_system_status first_result=STRELA_SYS_RUNNING,result;
+    clock_t begin,end;
+    double host_s,sim_s;
+    if (argc<3 || !parse_listing(argv[2],words,seen,&start,&has_start)) return 2;
+    for (j=3;j<argc;++j) {
+        const char *key=argv[j];
+        if (++j>=argc) { fprintf(stderr,"missing value for %s\n",key); return 2; }
+        if (strcmp(key,"--repeat")==0) {
+            if (!decimal_u64(argv[j],&repeat) || !repeat || repeat>100000) return 2;
+        } else if (strcmp(key,"--max-us")==0) {
+            if (!decimal_u64(argv[j],&budget) || !budget) return 2;
+        } else if (strcmp(key,"--start")==0) {
+            if (!octal_field(argv[j],4,&start) || start>=STRELA_RAM_WORDS) return 2;
+        } else { fprintf(stderr,"unknown option: %s\n",key); return 2; }
+    }
+    memset(&first,0,sizeof(first));
+    begin=clock();
+    for (run=0;run<repeat;++run) {
+        strela_machine *m=strela_machine_create(NULL);
+        if (!m) return 2;
+        for (n=0;n<STRELA_RAM_WORDS;++n)
+            if (seen[n] && !strela_machine_write_word(m,(uint16_t)n,words[n])) {
+                strela_machine_destroy(m); return 2;
+            }
+        if (!strela_machine_set_pc(m,(uint16_t)start)) { strela_machine_destroy(m); return 2; }
+        strela_machine_resume(m);
+        result=strela_machine_run_for_us(m,budget);
+        strela_machine_read_state(m,&state);
+        strela_machine_destroy(m);
+        if (!run) { first=state; first_result=result; }
+        else if (result!=first_result || state.pc!=first.pc ||
+                 state.instructions!=first.instructions || state.cycles!=first.cycles ||
+                 state.elapsed_us!=first.elapsed_us || state.legacy_reason!=first.legacy_reason ||
+                 state.display_a!=first.display_a || state.display_b!=first.display_b) same=0;
+    }
+    end=clock();
+    host_s=(double)(end-begin)/CLOCKS_PER_SEC;
+    sim_s=(double)first.elapsed_us*1e-6;
+    printf("%s at %04o after %" PRIu64 " instructions, %" PRIu64
+           " nominal intervals (%" PRIu64 " us simulated)\n",
+           first_result==STRELA_SYS_BUDGET ? "budget" :
+           status_name((strela_status)first.legacy_reason),
+           first.pc,first.instructions,first.cycles,first.elapsed_us);
+    printf("display=%013" PRIo64 "/%013" PRIo64 "\n",first.display_a,first.display_b);
+    printf("runs=%" PRIu64 " identical=%s\n",repeat,same ? "yes" : "NO");
+    if (host_s>0.0) {
+        printf("host CPU %.3f s for %" PRIu64 " runs, %.3f ms per run\n",
+               host_s,repeat,host_s*1000.0/(double)repeat);
+        printf("speed %.0fx real time (simulated time / host CPU time); real time needs >= 1x\n",
+               sim_s*(double)repeat/host_s);
+    } else {
+        printf("host CPU time below the clock resolution; raise --repeat\n");
+    }
+    if (!same) return 1;
+    if (first_result==STRELA_SYS_BUDGET) return 3;
+    return (first.legacy_reason==STRELA_STOPPED ||
+            first.legacy_reason==STRELA_CONTROL_STOP) ? 0 : 1;
+}
+
 int main(int argc, char **argv)
 {
     if (argc<2 || strcmp(argv[1],"--help")==0) {
@@ -458,10 +529,12 @@ int main(int argc, char **argv)
         puts("       strela_run inspect file.sts [--ram 0100] [--tape1-zone 4001]");
         puts("       strela_run operate file.sts [--reset 0010] [--set 0100 000000000000001]");
         puts("         [--check-stops 1] [--step 1] [--dump 0100] [--save-snapshot next.sts]");
+        puts("       strela_run bench listing.txt [--repeat 10] [--max-us 500000000] [--start 0020]");
         puts("exit: 0 normal/control stop, 1 machine fault, 2 input/output error, 3 budget/limit");
         return argc<2 ? 2 : 0;
     }
     if (strcmp(argv[1],"prepare")==0) return prepare_snapshot(argc,argv);
+    if (strcmp(argv[1],"bench")==0) return bench(argc,argv);
     if (strcmp(argv[1],"run")==0) return explicit_run(argc,argv);
     if (strcmp(argv[1],"resume")==0) return resume_or_inspect(argc,argv,0);
     if (strcmp(argv[1],"inspect")==0) return resume_or_inspect(argc,argv,1);

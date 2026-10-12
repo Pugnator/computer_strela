@@ -18,6 +18,22 @@ int main(void)
     assert(strela_word_add(one, tiny, 012, &result));
     assert(result == one);
     assert(strela_word_add(one, one | SIGN, 001, &result) && result == 0);
+    /* Kitov/Krinitsky (1959), printed p. 140: with cell 7575 (-0, order 35),
+       opcode 12 keeps the integer part and 01 rounds to the nearest integer.
+       The book's number is -1011001.1110001 (binary). */
+    {
+        uint64_t int_constant = SIGN | 043, x, expect;
+        assert(strela_from_double(-(89.0 + 113.0 / 128.0), &x));
+        assert(strela_from_double(-89.0, &expect));
+        assert(strela_word_add(x, int_constant, 012, &result) && result == expect);
+        assert(strela_from_double(-90.0, &expect));
+        assert(strela_word_add(x, int_constant, 001, &result) && result == expect);
+        assert(strela_from_double(3.75, &x));
+        assert(strela_from_double(3.0, &expect));
+        assert(strela_word_add(x, int_constant, 012, &result) && result == expect);
+        assert(strela_from_double(4.0, &expect));
+        assert(strela_word_add(x, int_constant, 001, &result) && result == expect);
+    }
     assert(strela_word_multiply(one, one, &result) && result == one);
     assert(strela_word_multiply(one, half, &result) && result == half);
     assert(strela_word_multiply(one | SIGN, half, &result) && result == (half | SIGN));

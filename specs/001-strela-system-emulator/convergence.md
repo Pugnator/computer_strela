@@ -36,6 +36,10 @@ Both GCC and Clang builds compile with -Wall -Wextra -Werror. All 14 headless CT
 
 Tasks T054–T061 corrected the 1958 book attribution, made inspect report the recorded stop, allowed operator edits on a stopped machine, recorded constant provenance, and aligned the contracts and data model with the built API. Both the GCC tree in build/ and the Clang tree in build-clang/, configured with the terminal and browser consoles, pass 19 of 19 CTest targets. The prebuilt WebAssembly module in web/dist/ still matches the native CLI in node web/test-wasm.mjs. It must be rebuilt with Emscripten to read snapshots that contain operator-supplied constants.
 
+## Smoke test, 2026-10-13
+
+The smoke test in examples/benchmark found that order alignment kept guard digits, so the book's integer-part example (p. 140) failed for opcodes 12 and 01. src/word.c now drops (12) or rounds (01, 03, 04) the digits that leave the 35-digit grid during alignment, as the book describes. All earlier tests, including the 1958 linear-equations result, are unchanged. Both trees pass 23 of 23 CTest targets.
+
 ## Remaining evidence limits
 
 - The [Ershov archive](https://ershov.iis.nsk.su/ru/foundation/index) labels 220 us a main tact; the [Computer Museum profile](https://www.computer-museum.ru/english/strela.htm) gives 500 us clock time and 2,000 commands/s. The mapping from tacts to opcodes is unknown. We use 500 us as a throughput-derived nominal interval and expose 220 us separately.

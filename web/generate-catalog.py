@@ -53,9 +53,9 @@ def binary(value):
     return (1 << 42 if value < 0 else 0) | (m << 7) | ((64 | -e) if e < 0 else e)
 
 
-def words(name):
-    """START line and every word line of a verified book listing."""
-    text = (BOOK / name).read_text(encoding="utf-8")
+def words(name, folder=BOOK):
+    """START line and every word line of a verified listing."""
+    text = (folder / name).read_text(encoding="utf-8")
     return [l for l in text.splitlines() if re.match(r"^(START [0-7]{4}|[0-7]{4} [0-7]{4} )", l)]
 
 
@@ -179,6 +179,22 @@ deck(id="group-product-1959", file="programs/group-product.strela", year=1959, b
      title="Групповая операция 37: произведения",
      description="Все три адреса растут при каждом повторении: 64 произведения в ячейках 0300–0377.",
      source=B59 + ", § 28, пример 11", href=URL59, kind="custom")
+
+write("smoke-test.strela", [
+    "Проверка машины: все группы команд и ячейки памяти 0400–3777.",
+    "Составлена для пульта, а не взята из книги: examples/benchmark/make-smoke-test.py.",
+    "Ожидаемые слова вычислены по правилам книги 1959 года (с. 124–141), а не эмулятором.",
+    "Каждая проверка заканчивается командой 26: при несовпадении машина останавливается",
+    "у этой проверки и показывает на пульте полученное и ожидаемое слова.",
+    "При успехе на перфокарту выдаются число проверок (14) и число проверенных ячеек (1792).",
+    "Счёт занимает 4 821 500 мкс машинного времени: при реальной скорости машины около 5 с.",
+], words("smoke-test.strela", WEB.parent / "examples" / "benchmark"))
+deck(id="smoke-test", file="programs/smoke-test.strela", year=2026, book="test", pages="проверка",
+     title="Проверка машины",
+     description="14 проверок всех групп команд и памяти 0400–3777. При успехе выдаёт 14 и 1792; "
+                 "при сбое останавливается у проверки. Около 5 с при реальной скорости машины.",
+     source="Программа проекта, составленная по правилам книги 1959 года",
+     href="https://github.com/Pugnator/computer_strela/tree/main/examples/benchmark", kind="book")
 
 deck(id="vostok", file="vostok-orbit.strela", year=1961, book="vostok", pages="расчёт для пульта",
      title="Выведение «Востока-1»",

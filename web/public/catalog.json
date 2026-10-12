@@ -97,6 +97,18 @@
       "kind": "custom"
     },
     {
+      "id": "smoke-test",
+      "file": "programs/smoke-test.strela",
+      "year": 2026,
+      "book": "test",
+      "pages": "проверка",
+      "title": "Проверка машины",
+      "description": "14 проверок всех групп команд и памяти 0400–3777. При успехе выдаёт 14 и 1792; при сбое останавливается у проверки. Около 5 с при реальной скорости машины.",
+      "source": "Программа проекта, составленная по правилам книги 1959 года",
+      "href": "https://github.com/Pugnator/computer_strela/tree/main/examples/benchmark",
+      "kind": "book"
+    },
+    {
       "id": "vostok",
       "file": "vostok-orbit.strela",
       "year": 1961,

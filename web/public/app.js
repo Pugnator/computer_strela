@@ -213,11 +213,12 @@ function showProgramDescription(kind) {
   const description = $('bookDescription');
   const source = $('sourceLink');
   if (kind && typeof kind === 'object') {
-    plate.textContent = 'ПРОГРАММА ИЗ КНИГИ · ' + kind.year;
+    const test = kind.book === 'test';
+    plate.textContent = test ? 'ПРОВЕРКА МАШИНЫ' : 'ПРОГРАММА ИЗ КНИГИ · ' + kind.year;
     title.textContent = kind.title;
-    description.textContent = kind.description + ' Источник: ' + kind.source + ', ' + kind.pages + '.';
+    description.textContent = kind.description + ' Источник: ' + kind.source + (test ? '.' : ', ' + kind.pages + '.');
     source.href = kind.href;
-    source.textContent = 'Книга ' + kind.year + ' года ↗';
+    source.textContent = test ? 'Описание проверки ↗' : 'Книга ' + kind.year + ' года ↗';
     return;
   }
   if (kind === 'orbit') {
@@ -498,16 +499,26 @@ async function runVisual(budgetUs) {
   let state = startState;
   visualStopRequested = false;
   $('haltVisual').disabled = false;
-  notice(slowdownMs() ? 'Счёт с замедлением…' : 'Счёт…');
+  const realTime = $('realTime').checked;
+  const wallStart = performance.now();
+  notice(realTime ? 'Счёт с реальной скоростью машины…' : slowdownMs() ? 'Счёт с замедлением…' : 'Счёт…');
   try {
     while (!visualStopRequested && state.reason === 'running' &&
            (budget === null || BigInt(state.elapsedUs) - startUs < budget)) {
-      const delay = slowdownMs();
-      const remaining = budget === null ? 100000n : budget - (BigInt(state.elapsedUs) - startUs);
+      const delay = realTime ? 40 : slowdownMs();
+      const done = BigInt(state.elapsedUs) - startUs;
+      const remaining = budget === null ? 100000n : budget - done;
+      let chunk = remaining < 100000n ? remaining : 100000n;
+      if (realTime) {
+        // Run only as much machine time as has passed on the wall clock.
+        const due = BigInt(Math.floor((performance.now() - wallStart) * 1000)) - done;
+        chunk = due < 1n ? 1n : due > 200000n ? 200000n : due;
+        if (budget !== null && chunk > remaining) chunk = remaining;
+      }
       state = await request('/api/session/' + id + '/action' + stateQuery(), {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(delay === 0 ?
-          { type: 'run', budgetUs: Number(remaining < 100000n ? remaining : 100000n) } :
+        body: JSON.stringify(realTime || delay === 0 ?
+          { type: 'run', budgetUs: Number(chunk) } :
           { type: 'step', count: 1 })
       });
       render(state);
@@ -520,7 +531,11 @@ async function runVisual(budgetUs) {
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
     if (state.reason === 'normal stop') {
-      notice('Счёт завершён · ' + commandCount(state.instructions) + '.');
+      const machineS = Number(BigInt(state.elapsedUs) - startUs) / 1e6;
+      const wallS = (performance.now() - wallStart) / 1000;
+      notice('Счёт завершён · ' + commandCount(state.instructions) + ' · машинное время ' +
+        machineS.toLocaleString('ru-RU', { maximumFractionDigits: 3 }) + ' с, на компьютере ' +
+        wallS.toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' с.');
       if (programKind === 'orbit') await printOrbit();
       await showIssuedDeck(true);
     } else if (visualStopRequested) {
@@ -630,7 +645,8 @@ function deckElement(deck) {
   button.style.setProperty('--depth', Math.min(14, 3 + Math.round(deck.cards / 4)) + 'px');
   const tab = document.createElement('span');
   tab.className = 'catalog-tab';
-  tab.textContent = deck.book === 'vostok' ? 'РАСЧЁТ · ВОСТОК-1' : 'КНИГА ' + deck.year + ' · ' + deck.pages;
+  tab.textContent = deck.book === 'vostok' ? 'РАСЧЁТ · ВОСТОК-1' : deck.book === 'test' ? 'ПРОВЕРКА МАШИНЫ' :
+    'КНИГА ' + deck.year + ' · ' + deck.pages;
   const title = document.createElement('strong');
   title.textContent = deck.title;
   const text = document.createElement('span');
