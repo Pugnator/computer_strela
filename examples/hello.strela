@@ -1,0 +1,4 @@
+# Address, first address, second address, destination, check bit, opcode.
+# Copy the constant one from 7400 to RAM 0100, then stop.
+0010 7400 0000 0100 0 13
+0011 0000 0000 0000 0 40

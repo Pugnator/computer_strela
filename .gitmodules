@@ -1,0 +1,3 @@
+[submodule "docs/ui/oracle"]
+	path = docs/ui/oracle
+	url = https://github.com/Pugnator/llm-ui-design-oracle.git

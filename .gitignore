@@ -1,0 +1,10 @@
+/build/
+/docs/ecm_i_prog.txt
+/build-clang/
+
+/web/dist/
+
+/build-linux/
+
+__pycache__/
+*.tmp

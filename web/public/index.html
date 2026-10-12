@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e8d080">
+  <title>«Стрела» — пульт управления</title>
+  <meta name="description" content="Пульт электронной цифровой машины «Стрела». Программа решения двух линейных уравнений из книги А. И. Китова и Н. А. Криницкого.">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="masthead">
+      <div class="brand-copy">
+        <div class="eyebrow">ЭЛЕКТРОННАЯ ЦИФРОВАЯ МАШИНА</div>
+        <h1>«СТРЕЛА» <small>пульт управления и сигнализации</small></h1>
+      </div>
+      <a class="header-photo" href="https://prod-api.polymus.ru/upload/iblock/6d7/me8q0t3xzc8n5wh247fv6ghlhw9gf1mp/07-23147_1-Panel-pulta-upravleniya-i-signalizatsii-ETSVM-_Strela_.jpg" target="_blank" rel="noopener noreferrer" aria-label="Фотография панели пульта «Стрелы» в Политехническом музее">
+        <img src="./strela-control-panel-polymus.jpg" alt="Панель пульта «Стрелы» с рядами сигнальных ламп" width="2766" height="3000">
+        <span>ПОЛИТЕХНИЧЕСКИЙ МУЗЕЙ ↗</span>
+      </a>
+      <div class="head-status">
+        <span id="statusLamp" class="lamp" aria-hidden="true"></span>
+        <div><span class="caption">СОСТОЯНИЕ МАШИНЫ</span><strong id="statusText">Подготовка</strong></div>
+      </div>
+    </header>
+
+    <section class="book-intro" aria-labelledby="bookTitle">
+      <div class="intro-plate" id="introPlate">ПРОГРАММА ИЗ КНИГИ · 1958</div>
+      <div>
+        <h2 id="bookTitle">Решение двух линейных уравнений</h2>
+        <p id="bookDescription">А. И. Китов и Н. А. Криницкий, «Электронные вычислительные машины», таблица 4, с. 45–46. Для уравнений <i>x + 2y = 5</i> и <i>7x + 5y = 17</i> машина находит <i>x ≈ 1</i> и <i>y ≈ 2</i>. Ответ записывается в ячейки <b>0051</b> и <b>0052</b>, затем выдаётся на перфокарту.</p>
+      </div>
+      <a id="sourceLink" href="https://www.computer-museum.ru/books/kitov_evm.pdf" target="_blank" rel="noopener noreferrer">Книга Китова и Криницкого ↗</a>
+    </section>
+
+    <div id="notice" class="notice" role="status" aria-live="polite">Подготовка программы…</div>
+
+    <main class="dashboard">
+      <details class="side-drawer side-drawer-left" name="side-panels">
+        <summary><span class="drawer-photo" aria-hidden="true"></span><span class="drawer-label">Ячейки памяти<span class="drawer-indicator" aria-hidden="true"></span></span></summary>
+        <div class="side-panel">
+      <section class="module memory" aria-labelledby="memoryTitle">
+        <div class="module-head"><span class="module-no">04</span><div><p class="overline">ОПЕРАТИВНАЯ ПАМЯТЬ</p><h2 id="memoryTitle">Ячейки памяти</h2></div><button class="drawer-close" type="button">Закрыть</button></div>
+        <div class="memory-toolbar"><label for="ramAddress">Начальный адрес</label><input id="ramAddress" class="oct" maxlength="4" value="0000" spellcheck="false"><button id="inspectRam" class="control-button" type="button">Показать</button><span>16 ячеек из 2048</span></div>
+        <div class="memory-table-wrap"><table><thead><tr><th>АДРЕС</th><th>СЛОВО · ВОСЬМЕРИЧНОЕ</th><th>А · В · С · КЗ · КО</th></tr></thead><tbody id="ramRows"></tbody></table></div>
+        <div class="edit-bar"><label for="editAddress">ЗАПИСЬ В ЯЧЕЙКУ</label><input id="editAddress" class="oct" maxlength="4" value="0000" aria-label="Адрес ячейки"><input id="editWord" class="oct word-input" maxlength="15" value="000000000000000" aria-label="Восьмеричное слово"><button id="writeWord" class="control-button" type="button">Записать</button></div>
+      </section>
+        </div>
+      </details>
+      <section class="module controls" aria-labelledby="controlsTitle">
+        <div class="module-head"><span class="module-no">01</span><div><p class="overline">ПУЛЬТ УПРАВЛЕНИЯ</p><h2 id="controlsTitle">Управление машиной</h2></div></div>
+        <div class="readout-grid">
+          <div class="readout"><span>АДРЕС КОМАНДЫ</span><strong id="pc">----</strong><small>восьмеричная запись</small></div>
+          <div class="readout"><span>ЗНАК ω</span><strong id="omega">–</strong><small>признак перехода</small></div>
+          <div class="readout wide"><span>ВРЕМЯ СЧЁТА</span><strong id="elapsed">0 мкс</strong><small id="intervals">0 команд выполнено</small></div>
+        </div>
+        <div class="keypad">
+          <button id="step" class="control-button primary" type="button">Одна операция</button>
+          <button id="step10" class="control-button" type="button">Десять операций</button>
+          <label class="time-limit"><input id="timeLimit" type="checkbox"> Ограничить время счёта</label>
+          <div class="run-row"><label for="budget">Время счёта <small>мкс</small></label><input id="budget" type="number" min="1" max="1000000000" value="1000000" disabled><button id="run" class="control-button primary" type="button">Пуск</button></div><div class="run-row"><label for="slowdown">Замедление показа <small>мс на шаг</small></label><input id="slowdown" type="number" min="0" max="1000" step="10" value="50"><button id="haltVisual" class="control-button" type="button" disabled>Останов</button></div>
+          <div class="run-row"><label for="resetAddress">Адрес начала</label><input id="resetAddress" class="oct" maxlength="4" value="0020" spellcheck="false"><button id="reset" class="control-button" type="button">Начальный пуск</button></div>
+        </div>
+        <label class="toggle-row" for="checkStops"><span>Контрольный останов <small>Останов по контрольному знаку</small></span><input id="checkStops" type="checkbox"><span class="toggle-track" aria-hidden="true"></span></label>
+        <div class="stop-panel"><span class="caption">ПРИЧИНА ОСТАНОВА</span><strong id="reason">Машина готова</strong><div class="stop-operands"><span>А <b id="displayA">000000000000000</b></span><span>В <b id="displayB">000000000000000</b></span></div></div>
+      </section>
+
+      <section class="module instruction" aria-labelledby="instructionTitle">
+        <div class="module-head"><span class="module-no">02</span><div><p class="overline">КОМАНДА И РАЗРЯДЫ</p><h2 id="instructionTitle">Очередная команда</h2></div></div>
+        <div class="instruction-card">
+          <div class="register-label"><span>АДРЕС КОМАНДЫ</span><strong id="nextAt">----</strong></div>
+          <div id="nextRaw" class="raw-word" aria-label="Восьмеричная запись команды">000000000000000</div>
+          <div id="bitStrip" class="bit-strip" aria-label="43 разряда команды"></div>
+          <div class="field-head"><span>АДРЕС А</span><span>АДРЕС В</span><span>АДРЕС С</span><span>КЗ</span><span>КО</span></div>
+          <div class="field-values"><strong id="fieldA">----</strong><strong id="fieldB">----</strong><strong id="fieldC">----</strong><strong id="fieldCheck">–</strong><strong id="fieldOp">--</strong></div>
+        </div>
+        <div class="last-instruction"><span>ВЫПОЛНЕНА В ЯЧЕЙКЕ <b id="lastAt">----</b></span><strong id="lastRaw">000000000000000</strong></div>
+        <div class="timing-note"><strong id="mainTact">220 мкс</strong><span>основной такт</span></div>
+      <section id="outputCard" class="output-card" hidden>
+        <button id="showOutputDeck" class="control-button" type="button">Выданные перфокарты</button>
+      </section>
+      <section class="printer" aria-labelledby="printerTitle"><div class="module-head"><div><p class="overline">ВЫДАЧА РЕЗУЛЬТАТОВ</p><h2 id="printerTitle">Печатающее устройство</h2></div></div><div class="printer-grid"><div><label class="printer-rate" for="printerRate">Условный темп показа, знаков в секунду <input id="printerRate" type="number" min="1" max="200" value="40"></label><p id="printerStatus" class="printer-status">Колода с результатами ожидается.</p></div><div class="paper-frame"><div class="paper-holes" aria-hidden="true"></div><div id="printerPaper" class="printer-paper" aria-live="off"></div><div class="paper-holes" aria-hidden="true"></div></div></div></section>
+      </section>
+
+      <section class="module program" aria-labelledby="programTitle">
+        <div class="module-head"><span class="module-no">03</span><div><p class="overline">ПРОГРАММА</p><h2 id="programTitle">Запись команд</h2></div></div>
+        <p class="module-intro">В каждой строке: адрес ячейки, три адреса команды, контрольный знак и код операции. Все адреса и коды записаны восьмеричными цифрами.</p>
+        <textarea id="listing" spellcheck="false" aria-label="Восьмеричная запись программы"></textarea>
+        <div class="card-loader" aria-label="Колода перфокарт"><button class="card-stack" id="deckVisual" type="button" aria-label="Просмотреть колоду программы" title="Просмотреть колоду программы" disabled><span class="card-face"><span>ПЕРФОКАРТА · «СТРЕЛА»</span><span class="card-holes" aria-hidden="true"></span><strong id="deckCurrent">Колода готова</strong></span></button><div class="card-reader"><strong>СЧИТЫВАЮЩЕЕ УСТРОЙСТВО</strong><span id="deckCount">0 карт в колоде</span><span id="deckRead">0 слов прочитано</span><div class="deck-track"><span id="deckProgress"></span></div><small>Код УПП</small></div></div>
+        <div class="program-actions"><button id="loadListing" class="control-button primary" type="button">Ввести программу в память</button><button id="loadExample" class="control-button" type="button">Программа из книги</button><button id="loadOrbit" class="control-button" type="button">Полёт «Востока-1»</button></div>
+        <p class="program-help">Кнопка вводит показанные выше команды в память машины через условную колоду перфокарт. Для выполнения нажмите «Пуск».</p><p class="file-limit">Размер файлов: программа — до 1 Мбайта; перфокарты и каждая лента — до 8 Мбайт, вместе — до 16 Мбайт; состояние — до 16 Мбайт.</p><div class="file-actions"><label class="file-button">Открыть программу<input id="listingFile" type="file" accept=".strela,.txt,text/plain"></label><label class="file-button">Восстановить состояние<input id="snapshotFile" type="file" accept=".sts,application/octet-stream"></label><button id="saveSnapshot" class="file-button" type="button">Сохранить состояние</button></div>
+        <div class="media-files">
+          <span class="caption">ПЕРФОКАРТЫ И МАГНИТНЫЕ ЛЕНТЫ</span>
+          <div><label class="file-button">Перфокарты<input id="cardsFile" type="file" accept=".cards,.txt,text/plain"></label><label class="file-button">Лента 1<input id="tape1File" type="file" accept=".stt,.txt,text/plain"></label><label class="file-button">Лента 2<input id="tape2File" type="file" accept=".stt,.txt,text/plain"></label></div>
+          <small id="mediaNames">Перфокарты и ленты не выбраны</small>
+          <button id="clearMedia" class="text-button" type="button">Убрать выбранные носители</button>
+        </div>
+        <p class="program-hint">Запись программы устанавливает машину перед первой командой. Состояние можно сохранить и позднее восстановить.</p>
+      </section>
+      <details class="side-drawer side-drawer-right" name="side-panels">
+        <summary><span class="drawer-photo" aria-hidden="true"></span><span class="drawer-label">Перфокарты и ленты<span class="drawer-indicator" aria-hidden="true"></span></span></summary>
+        <div class="side-panel">
+      <section class="module media" aria-labelledby="mediaTitle">
+        <div class="module-head"><span class="module-no">05</span><div><p class="overline">ВВОД И ВЫДАЧА</p><h2 id="mediaTitle">Перфокарты и ленты</h2></div><button class="drawer-close" type="button">Закрыть</button></div>
+        <div class="media-stats"><div><span>ПРОЧТЕНО С ПЕРФОКАРТ</span><strong id="cardsRead">0</strong></div><div><span>ВЫДАНО НА ПЕРФОКАРТЫ</span><strong id="cardsPunched">0</strong></div><div><span>ЛЕНТА 1 · ЗОНА</span><strong id="tape1">0000</strong></div><div><span>ЛЕНТА 2 · ЗОНА</span><strong id="tape2">0000</strong></div></div>
+        <div class="zone-row"><label for="zoneAddress">Зона ленты</label><input id="zoneAddress" class="oct" maxlength="4" placeholder="4001" spellcheck="false"><button id="inspectZone" class="control-button" type="button">Показать</button></div>
+        <div id="zoneOutput" class="zone-output">Для просмотра слов укажите адрес зоны первой или второй ленты.</div>
+      </section>
+        </div>
+      </details>
+
+
+
+
+    </main>
+    <footer><span>ЭЛЕКТРОННАЯ ЦИФРОВАЯ МАШИНА «СТРЕЛА»</span><a href="https://polymus.ru/collection/detail/bloki-elektronnoy-vychislitelnoy-mashiny-strela" target="_blank" rel="noopener noreferrer">Цвета и детали пульта: Политехнический музей ↗</a></footer>
+  </div>
+    <dialog id="outputDialog" class="output-dialog" aria-labelledby="outputDialogTitle">
+      <div class="output-dialog-head"><h2 id="outputDialogTitle">Выданные перфокарты</h2><button id="closeOutputDeck" class="control-button" type="button" autofocus>Закрыть</button></div>
+      <div class="output-dialog-nav"><button id="previousOutputCard" class="control-button" type="button">Предыдущая</button><p id="outputCardNumber" aria-live="polite"></p><button id="nextOutputCard" class="control-button" type="button">Следующая</button></div>
+      <div id="outputCardImage" class="output-card-image"></div>
+      <pre id="outputCardText" class="output-card-text"></pre>
+    </dialog>
+</body>
+</html>
+
